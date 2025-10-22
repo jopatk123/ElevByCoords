@@ -1,0 +1,32 @@
+{
+  "name": "elev-by-coords",
+  "version": "1.0.0",
+  "description": "Elevation query service by coordinates using SRTM data",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm run install:client && npm run install:server",
+    "install:client": "cd client && npm install",
+    "install:server": "cd server && npm install",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "test": "npm run test:client && npm run test:server",
+    "test:client": "cd client && npm run test --run",
+    "test:server": "cd server && npm run test --run",
+    "lint": "npm run lint:client && npm run lint:server",
+    "lint:client": "cd client && npm run lint",
+    "lint:server": "cd server && npm run lint",
+    "format": "prettier --write \"**/*.{js,ts,vue,json,md}\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "prettier": "^3.0.3"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ]
+}
