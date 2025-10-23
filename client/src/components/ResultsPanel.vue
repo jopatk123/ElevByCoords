@@ -81,18 +81,18 @@
         :default-sort="{ prop: 'elevation', order: 'descending' }"
         @row-click="onRowClick"
       >
-        <el-table-column type="index" label="#" width="60" />
-        <el-table-column prop="longitude" label="经度" width="120" sortable>
+        <el-table-column type="index" label="#" width="40" align="center" />
+        <el-table-column prop="longitude" label="经度" width="60" sortable align="center">
           <template #default="{ row }">
-            {{ row.longitude.toFixed(6) }}
+            {{ row.longitude.toFixed(4) }}
           </template>
         </el-table-column>
-        <el-table-column prop="latitude" label="纬度" width="120" sortable>
+        <el-table-column prop="latitude" label="纬度" width="60" sortable align="center">
           <template #default="{ row }">
-            {{ row.latitude.toFixed(6) }}
+            {{ row.latitude.toFixed(4) }}
           </template>
         </el-table-column>
-        <el-table-column prop="elevation" label="海拔 (m)" width="100" sortable>
+        <el-table-column prop="elevation" label="高程 (m)" width="60" sortable align="center">
           <template #default="{ row }">
             <el-tag v-if="row.elevation !== null" :type="getElevationTagType(row.elevation)">
               {{ row.elevation }}
@@ -100,26 +100,14 @@
             <el-tag v-else type="danger">无数据</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="error" label="错误信息" min-width="150">
-          <template #default="{ row }">
-            <el-text v-if="row.error" type="danger" size="small">
-              {{ row.error }}
-            </el-text>
-            <el-text v-else type="success" size="small">
-              查询成功
-            </el-text>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
+        <el-table-column label="定位" width="70" fixed="right" align="center">
           <template #default="{ row }">
             <el-button 
               type="primary" 
               size="small" 
               :icon="LocationIcon"
               @click.stop="locateOnMap(row)"
-            >
-              定位
-            </el-button>
+            />
           </template>
         </el-table-column>
       </el-table>
