@@ -6,7 +6,6 @@
         <div class="header-content">
           <div class="logo-section">
             <h1>海拔查询系统</h1>
-            <el-text type="info" size="small">基于 SRTM 数据的经纬度海拔查询服务</el-text>
           </div>
           <div class="header-actions">
             <el-button type="primary" :icon="InfoIcon" @click="showInfo">
@@ -141,8 +140,6 @@ function onLocatePoint(point: ElevationPoint): void {
     latitude: point.latitude
   };
   
-  mapViewRef.value?.addMarker(coordinate);
-  
   // 如果不在当前坐标列表中，添加进去
   if (!mapCoordinates.value.some(c => 
     Math.abs(c.longitude - coordinate.longitude) < 0.000001 && 
@@ -150,6 +147,9 @@ function onLocatePoint(point: ElevationPoint): void {
   )) {
     mapCoordinates.value.push(coordinate);
   }
+  
+  // 地图跳转到该位置
+  mapViewRef.value?.flyToCoordinate(coordinate, 12);
 }
 
 function onLocateCoordinateFromPanel(coordinate: Coordinate): void {

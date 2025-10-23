@@ -82,17 +82,17 @@
         @row-click="onRowClick"
       >
         <el-table-column type="index" label="#" width="40" align="center" />
-        <el-table-column prop="longitude" label="经度" width="60" sortable align="center">
+        <el-table-column prop="longitude" label="经度" width="70" sortable align="center">
           <template #default="{ row }">
-            {{ row.longitude.toFixed(4) }}
+            {{ row.longitude.toFixed(6) }}
           </template>
         </el-table-column>
-        <el-table-column prop="latitude" label="纬度" width="60" sortable align="center">
+        <el-table-column prop="latitude" label="纬度" width="70" sortable align="center">
           <template #default="{ row }">
-            {{ row.latitude.toFixed(4) }}
+            {{ row.latitude.toFixed(6) }}
           </template>
         </el-table-column>
-        <el-table-column prop="elevation" label="高程 (m)" width="60" sortable align="center">
+        <el-table-column prop="elevation" label="高程" width="60" sortable align="center">
           <template #default="{ row }">
             <el-tag v-if="row.elevation !== null" :type="getElevationTagType(row.elevation)">
               {{ row.elevation }}

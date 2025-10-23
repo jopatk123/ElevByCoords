@@ -265,10 +265,24 @@ defineExpose({
     display: flex;
     flex-direction: column;
     gap: 8px;
-    
+    /* 使按钮在横向上靠右对齐（右边缘一致），同时保证竖向排列居中 */
+    align-items: flex-end;
+
     .el-button {
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      
+      width: 110px; /* 统一宽度，略微加宽以容纳文字 */
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px; /* 图标与文字间距一致 */
+      text-align: center;
+      padding: 6px 10px;
+
+      /* 确保图标不造成偏移（icon 内联样式影响） */
+      svg {
+        vertical-align: middle;
+      }
+
       &.active {
         background-color: var(--el-color-success);
         border-color: var(--el-color-success);

@@ -42,6 +42,9 @@ export const useElevationStore = defineStore('elevation', () => {
         // 使用 splice 而不是赋值，减少响应式系统的反应
         results.value.splice(0, results.value.length, ...response.data);
         
+        // 为单点查询也设置 currentQuery，以便能够下载
+        currentQuery.value = { coordinates: [coordinate] };
+        
         if (response.metadata) {
           processingStats.value.totalPoints = response.metadata.totalPoints;
           processingStats.value.validPoints = response.metadata.validPoints;
