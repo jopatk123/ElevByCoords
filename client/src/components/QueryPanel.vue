@@ -145,11 +145,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, defineEmits } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search as SearchIcon, Location as LocationIcon, Upload as UploadIcon, UploadFilled } from '@element-plus/icons-vue';
 import type { FormInstance, FormRules, UploadFile, UploadInstance } from 'element-plus';
 import { useElevationStore } from '@/stores/elevation.store';
+import { isValidCoordinate } from '@/utils/coords';
 import type { Coordinate } from '@/types/shared';
 import Papa from 'papaparse';
 
@@ -219,19 +220,30 @@ function onQueryModeChange(): void {
   elevationStore.clearResults();
 }
 
+const emit = defineEmits(['locate-coordinate']);
+
 async function handleSingleQuery(): Promise<void> {
   if (!singleFormRef.value) return;
-  
+
   try {
     await singleFormRef.value.validate();
-    
+
     const coordinate: Coordinate = {
       longitude: singleForm.value.longitude!,
       latitude: singleForm.value.latitude!
     };
-    
+
+    // 额外校验，防止非法数值通过
+    if (!isValidCoordinate(coordinate)) {
+      ElMessage.warning('输入的经度/纬度不合法');
+      return;
+    }
+
     await elevationStore.querySinglePoint(coordinate);
     ElMessage.success('查询完成');
+
+    // 成功后通知父组件定位并添加标记
+    emit('locate-coordinate', coordinate);
   } catch (error) {
     console.error('Single query failed:', error);
   }

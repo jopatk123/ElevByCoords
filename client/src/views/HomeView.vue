@@ -25,6 +25,7 @@
             <QueryPanel 
               :map-coordinates="mapCoordinates"
               @coordinate-added="onCoordinateAdded"
+              @locate-coordinate="onLocateCoordinateFromPanel"
             />
             
             <!-- 结果面板 -->
@@ -149,6 +150,25 @@ function onLocatePoint(point: ElevationPoint): void {
   )) {
     mapCoordinates.value.push(coordinate);
   }
+}
+
+function onLocateCoordinateFromPanel(coordinate: Coordinate): void {
+  // 来自查询面板的定位请求
+  // 检查坐标是否已经存在
+  const exists = mapCoordinates.value.some(c => 
+    Math.abs(c.longitude - coordinate.longitude) < 0.000001 && 
+    Math.abs(c.latitude - coordinate.latitude) < 0.000001
+  );
+
+  // 只有当坐标不存在时才添加，避免重复操作导致递归更新
+  if (!exists) {
+    mapCoordinates.value.push(coordinate);
+  }
+
+  // 延迟执行map操作，确保marker已添加
+  setTimeout(() => {
+    mapViewRef.value?.flyToCoordinate(coordinate, 12);
+  }, 0);
 }
 
 function showInfo(): void {

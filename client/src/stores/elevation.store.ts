@@ -32,57 +32,57 @@ export const useElevationStore = defineStore('elevation', () => {
 
   // 操作
   async function querySinglePoint(coordinate: Coordinate): Promise<void> {
-    loading.value = true;
-    error.value = null;
-    
     try {
+      loading.value = true;
+      error.value = null;
+      
       const response = await apiService.getSingleElevation(coordinate);
       
       if (response.success && response.data) {
-        results.value = response.data;
+        // 使用 splice 而不是赋值，减少响应式系统的反应
+        results.value.splice(0, results.value.length, ...response.data);
+        
         if (response.metadata) {
-          processingStats.value = {
-            totalPoints: response.metadata.totalPoints,
-            validPoints: response.metadata.validPoints,
-            processingTime: response.metadata.processingTime
-          };
+          processingStats.value.totalPoints = response.metadata.totalPoints;
+          processingStats.value.validPoints = response.metadata.validPoints;
+          processingStats.value.processingTime = response.metadata.processingTime;
         }
       } else {
         throw new Error(response.error || '查询失败');
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : '查询失败';
-      results.value = [];
+      results.value.splice(0, results.value.length);
     } finally {
       loading.value = false;
     }
   }
 
   async function queryBatchPoints(coordinates: Coordinate[]): Promise<void> {
-    loading.value = true;
-    error.value = null;
-    
     try {
+      loading.value = true;
+      error.value = null;
+      
       const query: ElevationQuery = { coordinates };
       currentQuery.value = query;
       
       const response = await apiService.getBatchElevation(query);
       
       if (response.success && response.data) {
-        results.value = response.data;
+        // 使用 splice 而不是赋值
+        results.value.splice(0, results.value.length, ...response.data);
+        
         if (response.metadata) {
-          processingStats.value = {
-            totalPoints: response.metadata.totalPoints,
-            validPoints: response.metadata.validPoints,
-            processingTime: response.metadata.processingTime
-          };
+          processingStats.value.totalPoints = response.metadata.totalPoints;
+          processingStats.value.validPoints = response.metadata.validPoints;
+          processingStats.value.processingTime = response.metadata.processingTime;
         }
       } else {
         throw new Error(response.error || '批量查询失败');
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : '批量查询失败';
-      results.value = [];
+      results.value.splice(0, results.value.length);
     } finally {
       loading.value = false;
     }

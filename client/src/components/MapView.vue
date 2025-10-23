@@ -135,12 +135,36 @@ function removeMarker(marker: L.Marker): void {
 }
 
 function updateMarkers(coordinates: Coordinate[]): void {
-  // 清除现有标记
-  clearMarkers();
-  
-  // 添加新标记
+  if (!map.value) return;
+
+  // 只更新变化的标记，而不是全部清除重建
+  const existingMarkers = markers.value.map(marker => {
+    const latlng = marker.getLatLng();
+    return { lng: latlng.lng, lat: latlng.lat };
+  });
+
+  // 找出需要添加的新坐标
   coordinates.forEach(coord => {
-    addMarker(coord);
+    const exists = existingMarkers.some(m => 
+      Math.abs(m.lng - coord.longitude) < 0.000001 && 
+      Math.abs(m.lat - coord.latitude) < 0.000001
+    );
+    
+    if (!exists) {
+      addMarker(coord);
+    }
+  });
+
+  // 找出需要移除的标记
+  const coordinatesSet = new Set(coordinates.map(c => `${c.longitude},${c.latitude}`));
+  markers.value = markers.value.filter(marker => {
+    const latlng = marker.getLatLng();
+    const key = `${latlng.lng},${latlng.lat}`;
+    if (!coordinatesSet.has(key)) {
+      map.value?.removeLayer(marker);
+      return false;
+    }
+    return true;
   });
 }
 
@@ -207,11 +231,19 @@ function getCurrentLocation(): void {
   );
 }
 
-// 暴露方法给父组件
+// 暴露方法给父组件（在文件末尾统一导出）
+// 平移并聚焦到指定坐标
+function flyToCoordinate(coordinate: Coordinate, zoom = 12): void {
+  if (!map.value) return;
+  map.value.flyTo([coordinate.latitude, coordinate.longitude], zoom, { animate: true });
+}
+
+// 同时暴露 flyToCoordinate
 defineExpose({
   addMarker,
   clearMarkers,
-  updateMarkers
+  updateMarkers,
+  flyToCoordinate
 });
 </script>
 
