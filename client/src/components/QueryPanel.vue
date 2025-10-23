@@ -87,6 +87,20 @@
 
       <!-- 文件上传 -->
       <div v-if="queryMode === 'upload'" class="query-section">
+        <div class="template-actions">
+          <el-dropdown @command="handleDownloadTemplate">
+            <el-button type="success" :icon="DownloadIcon">
+              模板下载 <el-icon class="el-icon--right"><arrow-down /></el-icon>
+            </el-button>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="csv">下载 CSV 模板</el-dropdown-item>
+                <el-dropdown-item command="json">下载 JSON 模板</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+        
         <el-upload
           ref="uploadRef"
           class="upload-demo"
@@ -147,11 +161,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, defineEmits } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Search as SearchIcon, Location as LocationIcon, Upload as UploadIcon, UploadFilled } from '@element-plus/icons-vue';
+import { Search as SearchIcon, Location as LocationIcon, Upload as UploadIcon, Download as DownloadIcon, ArrowDown, UploadFilled } from '@element-plus/icons-vue';
 import type { FormInstance, FormRules, UploadFile, UploadInstance } from 'element-plus';
 import { useElevationStore } from '@/stores/elevation.store';
 import { isValidCoordinate } from '@/utils/coords';
 import type { Coordinate } from '@/types/shared';
+import apiService from '@/services/api.service';
 import Papa from 'papaparse';
 
 interface Props {
@@ -361,6 +376,24 @@ function clearUploadFile(): void {
   elevationStore.clearResults();
 }
 
+async function handleDownloadTemplate(format: 'csv' | 'json'): Promise<void> {
+  try {
+    const blob = await apiService.downloadTemplate(format);
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `elevation_template.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    ElMessage.success(`已下载 ${format.toUpperCase()} 模板`);
+  } catch (error) {
+    console.error('Template download failed:', error);
+    ElMessage.error('模板下载失败');
+  }
+}
+
 async function parseFile(file: File): Promise<Coordinate[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -460,6 +493,12 @@ watch(() => props.mapCoordinates, () => {
   }
   
   .query-section {
+    .template-actions {
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: flex-start;
+    }
+
     .batch-input {
       .batch-controls {
         margin-top: 12px;

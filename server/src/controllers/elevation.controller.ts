@@ -132,6 +132,49 @@ export class ElevationController {
     }
   }
 
+  async downloadTemplate(req: Request, res: Response): Promise<void> {
+    try {
+      const format = req.query.format as string || 'csv';
+      
+      if (format === 'json') {
+        const template = this.generateJSONTemplate();
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', 'attachment; filename="elevation_template.json"');
+        res.send(JSON.stringify(template, null, 2));
+      } else {
+        // 默认返回 CSV 格式
+        const csv = this.generateCSVTemplate();
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', 'attachment; filename="elevation_template.csv"');
+        res.send('\uFEFF' + csv); // BOM for Excel UTF-8
+      }
+    } catch (error) {
+      console.error('Error in downloadTemplate:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Internal server error'
+      });
+    }
+  }
+
+  private generateCSVTemplate(): string {
+    const header = 'longitude,latitude\n';
+    const examples = [
+      '116.3974,39.9093',  // 北京
+      '121.4737,31.2304',  // 上海
+      '113.2644,23.1291'   // 广州
+    ].join('\n');
+    return header + examples;
+  }
+
+  private generateJSONTemplate(): any[] {
+    return [
+      { longitude: 116.3974, latitude: 39.9093 },  // 北京
+      { longitude: 121.4737, latitude: 31.2304 },  // 上海
+      { longitude: 113.2644, latitude: 23.1291 }   // 广州
+    ];
+  }
+
   private formatAsCSV(results: any[]): string {
     const header = 'longitude,latitude,elevation,error\n';
     const rows = results.map(r => 

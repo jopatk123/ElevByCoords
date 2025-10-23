@@ -13,4 +13,7 @@ router.post('/batch', elevationController.getBatchElevation.bind(elevationContro
 // 获取瓦片信息 GET /api/v1/elevation/tiles
 router.get('/tiles', elevationController.getTileInfo.bind(elevationController));
 
+// 下载模板 GET /api/v1/elevation/template?format=csv|json
+router.get('/template', elevationController.downloadTemplate.bind(elevationController));
+
 export default router;

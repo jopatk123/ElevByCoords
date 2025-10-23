@@ -79,6 +79,19 @@ class ApiService {
     return response.data;
   }
 
+  async downloadTemplate(format: 'csv' | 'json'): Promise<Blob> {
+    const response = await this.api.get('/elevation/template', 
+      {
+        params: { format },
+        responseType: 'blob',
+        headers: {
+          'Accept': format === 'csv' ? 'text/csv' : 'application/json'
+        }
+      }
+    );
+    return response.data;
+  }
+
   async uploadFile(file: File): Promise<any> {
     const formData = new FormData();
     formData.append('file', file);
