@@ -1,7 +1,13 @@
 import { Request, Response } from 'express';
 import Joi from 'joi';
 import { ElevationService } from '../services/elevation.service';
-import type { Coordinate, ElevationQuery, ElevationResponse } from '../types/shared';
+import config from '../config/env';
+import type {
+  Coordinate,
+  ElevationQuery,
+  ElevationResponse,
+  ElevationStreamEvent
+} from '../types/shared';
 
 const elevationService = new ElevationService();
 
@@ -14,8 +20,10 @@ const coordinateSchema = Joi.object({
 const singleQuerySchema = coordinateSchema;
 
 const batchQuerySchema = Joi.object({
-  coordinates: Joi.array().items(coordinateSchema).min(1).max(1000).required(),
-  format: Joi.string().valid('json', 'csv', 'geojson').default('json')
+  coordinates: Joi.array().items(coordinateSchema).min(1).max(config.maxBatchSize).required(),
+  format: Joi.string().valid('json', 'csv', 'geojson').default('json'),
+  stream: Joi.boolean().default(false),
+  chunkSize: Joi.number().integer().min(1).max(config.maxBatchSize).optional()
 });
 
 export class ElevationController {
@@ -73,9 +81,34 @@ export class ElevationController {
         return;
       }
 
-      const query: ElevationQuery = value;
+      const { stream, chunkSize, ...rest } = value as ElevationQuery & { stream: boolean; chunkSize?: number };
+      const query: ElevationQuery = {
+        coordinates: rest.coordinates
+      };
+      if (rest.format) {
+        query.format = rest.format;
+      }
+      const shouldStream = stream === true;
+
+      if (shouldStream && query.format !== 'json') {
+        res.status(400).json({
+          success: false,
+          error: 'Streaming is only supported for JSON format responses'
+        });
+        return;
+      }
+
       const startTime = Date.now();
-      const results = await elevationService.getBatchElevation(query.coordinates);
+
+      if (shouldStream) {
+        await this.streamBatchResponse(req, res, query, chunkSize);
+        return;
+      }
+
+      const results = await elevationService.getBatchElevation(
+        query.coordinates,
+        chunkSize ? { chunkSize } : undefined
+      );
       const processingTime = Date.now() - startTime;
 
       const validPoints = results.filter(r => r.elevation !== null).length;
@@ -113,6 +146,71 @@ export class ElevationController {
         success: false,
         error: 'Internal server error'
       });
+    }
+  }
+
+  private async streamBatchResponse(
+    req: Request,
+    res: Response,
+    query: ElevationQuery,
+    chunkSize?: number
+  ): Promise<void> {
+    const totalPoints = query.coordinates.length;
+    let processedPoints = 0;
+    let validPoints = 0;
+    const startTime = Date.now();
+
+    res.status(200);
+    res.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+    res.setHeader('Transfer-Encoding', 'chunked');
+
+    if (typeof res.flushHeaders === 'function') {
+      res.flushHeaders();
+    }
+
+    try {
+      let chunkIndex = 0;
+      for await (const chunk of elevationService.streamBatchElevation(
+        query.coordinates,
+        chunkSize ? { chunkSize } : undefined
+      )) {
+        processedPoints += chunk.length;
+        validPoints += chunk.filter(point => point.elevation !== null).length;
+
+        const payload: ElevationStreamEvent = {
+          type: 'chunk',
+          chunkIndex,
+          processedPoints,
+          totalPoints,
+          progress: totalPoints === 0 ? 1 : processedPoints / totalPoints,
+          data: chunk
+        };
+
+        res.write(`${JSON.stringify(payload)}\n`);
+        chunkIndex += 1;
+      }
+      const processingTime = Date.now() - startTime;
+      const completePayload: ElevationStreamEvent = {
+        type: 'complete',
+        metadata: {
+          totalPoints,
+          validPoints,
+          processingTime,
+          dataSource: 'SRTM'
+        }
+      };
+      res.write(`${JSON.stringify(completePayload)}\n`);
+    } catch (error) {
+      console.error('Error streaming batch elevation:', error);
+      const errorPayload: ElevationStreamEvent = {
+        type: 'error',
+        error: 'Internal server error'
+      };
+      res.write(`${JSON.stringify(errorPayload)}\n`);
+    } finally {
+      if (!res.writableEnded) {
+        res.end();
+      }
     }
   }
 

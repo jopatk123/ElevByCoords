@@ -194,7 +194,7 @@ function onRowClick(row: ElevationPoint): void {
 
 function locateOnMap(point: ElevationPoint): void {
   emit('locate-point', point);
-  ElMessage.info(`定位到: ${point.latitude.toFixed(6)}, ${point.longitude.toFixed(6)}`);
+  (ElMessage as any).info(`定位到: ${point.latitude.toFixed(6)}, ${point.longitude.toFixed(6)}`);
 }
 
 function getElevationTagType(elevation: number): string {
@@ -207,10 +207,10 @@ function getElevationTagType(elevation: number): string {
 async function downloadResults(format: 'csv' | 'geojson'): Promise<void> {
   try {
     await elevationStore.downloadResults(format);
-    ElMessage.success(`${format.toUpperCase()} 文件下载成功`);
+  (ElMessage as any).success(`${format.toUpperCase()} 文件下载成功`);
   } catch (error) {
     console.error('Download failed:', error);
-    ElMessage.error('下载失败');
+  (ElMessage as any).error('下载失败');
   }
 }
 
@@ -227,7 +227,7 @@ async function clearResults(): Promise<void> {
     );
     
     elevationStore.clearResults();
-    ElMessage.success('结果已清空');
+  (ElMessage as any).success('结果已清空');
   } catch {
     // 用户取消
   }

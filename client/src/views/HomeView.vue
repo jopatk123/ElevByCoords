@@ -55,7 +55,7 @@
           <el-descriptions-item label="覆盖范围">中国东南部地区</el-descriptions-item>
           <el-descriptions-item label="支持格式">单点查询、批量查询、文件上传</el-descriptions-item>
           <el-descriptions-item label="文件类型">CSV, JSON, TXT, Excel</el-descriptions-item>
-          <el-descriptions-item label="最大批量">1000 个坐标点</el-descriptions-item>
+          <el-descriptions-item label="最大批量">{{ maxBatchSize }} 个坐标点</el-descriptions-item>
         </el-descriptions>
         
         <div class="coverage-info">
@@ -81,12 +81,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { ElMessage } from 'element-plus';
 import { InfoFilled as InfoIcon } from '@element-plus/icons-vue';
 import MapView from '@/components/MapView.vue';
 import QueryPanel from '@/components/QueryPanel.vue';
 import ResultsPanel from '@/components/ResultsPanel.vue';
 import apiService from '@/services/api.service';
+import config from '@/constants/env';
 import type { Coordinate, ElevationPoint } from '@/types/shared';
 
 // 响应式数据
@@ -94,6 +94,7 @@ const mapViewRef = ref<InstanceType<typeof MapView>>();
 const mapCoordinates = ref<Coordinate[]>([]);
 const infoDialogVisible = ref(false);
 const tileInfo = ref<any[]>([]);
+const maxBatchSize = config.maxBatchSize;
 
 // 生命周期
 onMounted(async () => {

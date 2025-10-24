@@ -169,7 +169,7 @@ describe('API Service Utils', () => {
 
   describe('Batch Operation Limits', () => {
     it('should validate batch size', () => {
-      const maxBatchSize = 1000;
+      const maxBatchSize = 20000;
       const coordinates: Coordinate[] = [];
       
       for (let i = 0; i < 500; i++) {
@@ -183,8 +183,8 @@ describe('API Service Utils', () => {
     });
 
     it('should reject batch exceeding limit', () => {
-      const maxBatchSize = 1000;
-      const oversizedBatch = 1500;
+      const maxBatchSize = 20000;
+      const oversizedBatch = 25000;
       
       expect(oversizedBatch > maxBatchSize).toBe(true);
     });

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import type { Coordinate, ElevationPoint, ElevationQuery } from '@/types/shared';
 import apiService from '@/services/api.service';
+import config from '@/constants/env';
 
 export const useElevationStore = defineStore('elevation', () => {
   // 状态
@@ -65,27 +66,73 @@ export const useElevationStore = defineStore('elevation', () => {
     try {
       loading.value = true;
       error.value = null;
-      
+      results.value.splice(0, results.value.length);
+
       const query: ElevationQuery = { coordinates };
       currentQuery.value = query;
-      
-      const response = await apiService.getBatchElevation(query);
-      
-      if (response.success && response.data) {
-        // 使用 splice 而不是赋值
-        results.value.splice(0, results.value.length, ...response.data);
-        
-        if (response.metadata) {
-          processingStats.value.totalPoints = response.metadata.totalPoints;
-          processingStats.value.validPoints = response.metadata.validPoints;
-          processingStats.value.processingTime = response.metadata.processingTime;
+      const shouldStream = coordinates.length > config.batchChunkSize;
+
+      if (shouldStream) {
+        processingStats.value.totalPoints = coordinates.length;
+        processingStats.value.validPoints = 0;
+        processingStats.value.processingTime = 0;
+
+        let runningValid = 0;
+
+        const response = await apiService.streamBatchElevation(
+          { coordinates, chunkSize: config.batchChunkSize },
+          {
+            onChunk: (chunk) => {
+              results.value.push(...chunk.data);
+              runningValid += chunk.data.filter(point => point.elevation !== null).length;
+              processingStats.value.validPoints = runningValid;
+              processingStats.value.totalPoints = coordinates.length;
+            },
+            onComplete: (event) => {
+              processingStats.value = {
+                totalPoints: event.metadata.totalPoints,
+                validPoints: event.metadata.validPoints,
+                processingTime: event.metadata.processingTime
+              };
+            }
+          }
+        );
+
+        if (response.success && response.data) {
+          results.value.splice(0, results.value.length, ...response.data);
+          if (response.metadata) {
+            processingStats.value = {
+              totalPoints: response.metadata.totalPoints,
+              validPoints: response.metadata.validPoints,
+              processingTime: response.metadata.processingTime
+            };
+          }
+        } else {
+          throw new Error(response.error || '批量查询失败');
         }
       } else {
-        throw new Error(response.error || '批量查询失败');
+        const response = await apiService.getBatchElevation(query);
+
+        if (response.success && response.data) {
+          results.value.splice(0, results.value.length, ...response.data);
+
+          if (response.metadata) {
+            processingStats.value.totalPoints = response.metadata.totalPoints;
+            processingStats.value.validPoints = response.metadata.validPoints;
+            processingStats.value.processingTime = response.metadata.processingTime;
+          }
+        } else {
+          throw new Error(response.error || '批量查询失败');
+        }
       }
     } catch (err) {
       error.value = err instanceof Error ? err.message : '批量查询失败';
       results.value.splice(0, results.value.length);
+      processingStats.value = {
+        totalPoints: 0,
+        validPoints: 0,
+        processingTime: 0
+      };
     } finally {
       loading.value = false;
     }

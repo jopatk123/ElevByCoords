@@ -1,7 +1,11 @@
 import fs from 'fs/promises';
 // import path from 'path';
 // import gdal from 'gdal-async';
-import type { Coordinate, ElevationPoint, SRTMTileInfo } from '../types/shared';
+import type {
+  Coordinate,
+  ElevationPoint,
+  SRTMTileInfo
+} from '../types/shared';
 import config from '../config/env';
 
 export class ElevationService {
@@ -112,14 +116,48 @@ export class ElevationService {
     return Math.round(baseElevation + terrainVariation);
   }
 
-  async getBatchElevation(coordinates: Coordinate[]): Promise<ElevationPoint[]> {
-    const results: ElevationPoint[] = [];
-    
-    for (const coord of coordinates) {
-      const result = await this.getElevation(coord);
-      results.push(result);
+  private resolveChunkSize(requested?: number): number {
+    const configured = Math.max(1, config.batchChunkSize);
+    if (!requested) {
+      return Math.min(configured, config.maxBatchSize);
     }
-    
+    return Math.min(config.maxBatchSize, Math.max(1, requested));
+  }
+
+  private async processChunk(coordinates: Coordinate[]): Promise<ElevationPoint[]> {
+    const chunkResults = await Promise.all(coordinates.map(coord => this.getElevation(coord)));
+    return chunkResults;
+  }
+
+  async *streamBatchElevation(
+    coordinates: Coordinate[],
+    options?: { chunkSize?: number }
+  ): AsyncGenerator<ElevationPoint[], void, unknown> {
+    const chunkSize = this.resolveChunkSize(options?.chunkSize);
+    const totalPoints = coordinates.length;
+  let processedPoints = 0;
+
+    for (let start = 0; start < coordinates.length; start += chunkSize) {
+      const end = Math.min(start + chunkSize, coordinates.length);
+      const chunkCoords = coordinates.slice(start, end);
+      const chunkResults = await this.processChunk(chunkCoords);
+      processedPoints += chunkResults.length;
+      yield chunkResults;
+      // 在大型批次时让出事件循环，避免阻塞
+      if (processedPoints < totalPoints) {
+        await new Promise(resolve => setImmediate(resolve));
+      }
+    }
+  }
+
+  async getBatchElevation(
+    coordinates: Coordinate[],
+    options?: { chunkSize?: number }
+  ): Promise<ElevationPoint[]> {
+    const results: ElevationPoint[] = [];
+    for await (const chunk of this.streamBatchElevation(coordinates, options)) {
+      results.push(...chunk);
+    }
     return results;
   }
 

@@ -70,7 +70,7 @@
               :disabled="!batchText.trim()"
               :icon="SearchIcon"
             >
-              批量查询 ({{ parsedCoordinates.length }} 个点)
+              批量查询 ({{ parsedCoordinates.length }}/{{ maxBatchSize }} 个点)
             </el-button>
             <el-button @click="clearBatchText">清空</el-button>
             <el-button 
@@ -167,6 +167,7 @@ import { useElevationStore } from '@/stores/elevation.store';
 import { isValidCoordinate } from '@/utils/coords';
 import type { Coordinate } from '@/types/shared';
 import apiService from '@/services/api.service';
+import config from '@/constants/env';
 import Papa from 'papaparse';
 
 interface Props {
@@ -178,6 +179,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const elevationStore = useElevationStore();
+const maxBatchSize = config.maxBatchSize;
 
 // 响应式数据
 const queryMode = ref<'single' | 'batch' | 'upload'>('single');
@@ -230,6 +232,16 @@ const parsedCoordinates = computed(() => {
   return coordinates;
 });
 
+// 统一的消息显示包装，避免 ElementPlus 的类型问题
+function showMessage(message: string, type: 'success' | 'warning' | 'info' | 'error' = 'info'): void {
+  try {
+    (ElMessage as any)({ message, type });
+  } catch (e) {
+    // 回退到直接调用以防意外
+    try { (ElMessage as any)[type](message); } catch { /* ignore */ }
+  }
+}
+
 // 方法
 function onQueryModeChange(): void {
   elevationStore.clearResults();
@@ -250,12 +262,12 @@ async function handleSingleQuery(): Promise<void> {
 
     // 额外校验，防止非法数值通过
     if (!isValidCoordinate(coordinate)) {
-      ElMessage.warning('输入的经度/纬度不合法');
+  showMessage('输入的经度/纬度不合法', 'warning');
       return;
     }
 
     await elevationStore.querySinglePoint(coordinate);
-    ElMessage.success('查询完成');
+  showMessage('查询完成', 'success');
 
     // 成功后通知父组件定位并添加标记
     emit('locate-coordinate', coordinate);
@@ -273,18 +285,18 @@ async function handleBatchQuery(): Promise<void> {
   const coordinates = parsedCoordinates.value;
   
   if (coordinates.length === 0) {
-    ElMessage.warning('请输入有效的坐标数据');
+  showMessage('请输入有效的坐标数据', 'warning');
     return;
   }
   
-  if (coordinates.length > 1000) {
-    ElMessage.warning('批量查询最多支持1000个点位');
+  if (coordinates.length > maxBatchSize) {
+  showMessage(`批量查询最多支持${maxBatchSize}个点位`, 'warning');
     return;
   }
   
   try {
     await elevationStore.queryBatchPoints(coordinates);
-    ElMessage.success(`批量查询完成，共处理 ${coordinates.length} 个点位`);
+  showMessage(`批量查询完成，共处理 ${coordinates.length} 个点位`, 'success');
   } catch (error) {
     console.error('Batch query failed:', error);
   }
@@ -297,7 +309,7 @@ function clearBatchText(): void {
 
 function useMapCoordinates(): void {
   if (props.mapCoordinates.length === 0) {
-    ElMessage.warning('地图上没有标记点位');
+  showMessage('地图上没有标记点位', 'warning');
     return;
   }
   
@@ -306,7 +318,7 @@ function useMapCoordinates(): void {
     .join('\n');
   
   batchText.value = coordText;
-  ElMessage.success(`已导入 ${props.mapCoordinates.length} 个地图点位`);
+  showMessage(`已导入 ${props.mapCoordinates.length} 个地图点位`, 'success');
 }
 
 function handleFileChange(file: UploadFile): void {
@@ -320,12 +332,12 @@ function beforeUpload(file: File): boolean {
   const isValidSize = file.size / 1024 / 1024 < 10;
   
   if (!isValidType) {
-    ElMessage.error('文件格式不支持');
+  showMessage('文件格式不支持', 'error');
     return false;
   }
   
   if (!isValidSize) {
-    ElMessage.error('文件大小不能超过 10MB');
+  showMessage('文件大小不能超过 10MB', 'error');
     return false;
   }
   
@@ -334,7 +346,7 @@ function beforeUpload(file: File): boolean {
 
 async function handleFileUpload(): Promise<void> {
   if (!uploadFile.value) {
-    ElMessage.warning('请先选择文件');
+  showMessage('请先选择文件', 'warning');
     return;
   }
   
@@ -342,13 +354,13 @@ async function handleFileUpload(): Promise<void> {
     const coordinates = await parseFile(uploadFile.value);
     
     if (coordinates.length === 0) {
-      ElMessage.warning('文件中没有找到有效的坐标数据');
+  showMessage('文件中没有找到有效的坐标数据', 'warning');
       return;
     }
     
-    if (coordinates.length > 1000) {
+    if (coordinates.length > maxBatchSize) {
       const result = await ElMessageBox.confirm(
-        `文件包含 ${coordinates.length} 个坐标点，超过建议的1000个点位限制。是否继续？`,
+        `文件包含 ${coordinates.length} 个坐标点，超过建议的${maxBatchSize}个点位限制。是否继续？`,
         '确认查询',
         {
           confirmButtonText: '继续查询',
@@ -363,10 +375,10 @@ async function handleFileUpload(): Promise<void> {
     }
     
     await elevationStore.queryBatchPoints(coordinates);
-    ElMessage.success(`文件解析完成，共处理 ${coordinates.length} 个点位`);
+  showMessage(`文件解析完成，共处理 ${coordinates.length} 个点位`, 'success');
   } catch (error) {
     console.error('File upload failed:', error);
-    ElMessage.error('文件解析失败');
+  showMessage('文件解析失败', 'error');
   }
 }
 
@@ -387,10 +399,10 @@ async function handleDownloadTemplate(format: 'csv' | 'json'): Promise<void> {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    ElMessage.success(`已下载 ${format.toUpperCase()} 模板`);
+  showMessage(`已下载 ${format.toUpperCase()} 模板`, 'success');
   } catch (error) {
     console.error('Template download failed:', error);
-    ElMessage.error('模板下载失败');
+  showMessage('模板下载失败', 'error');
   }
 }
 
@@ -410,8 +422,8 @@ async function parseFile(file: File): Promise<Coordinate[]> {
               coordinates = parseCSVData(results.data as string[][]);
               resolve(coordinates);
             },
-            error: (error) => {
-              reject(error);
+            error: (err: unknown) => {
+              reject(err);
             }
           });
         } else if (file.name.endsWith('.json')) {

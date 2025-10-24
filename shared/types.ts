@@ -13,6 +13,8 @@ export interface ElevationPoint extends Coordinate {
 export interface ElevationQuery {
   coordinates: Coordinate[];
   format?: 'json' | 'csv' | 'geojson';
+  stream?: boolean;
+  chunkSize?: number;
 }
 
 export interface ElevationResponse {
@@ -26,6 +28,30 @@ export interface ElevationResponse {
     dataSource: string;
   };
 }
+
+export interface ElevationStreamChunk {
+  type: 'chunk';
+  chunkIndex: number;
+  processedPoints: number;
+  totalPoints: number;
+  progress: number;
+  data: ElevationPoint[];
+}
+
+export interface ElevationStreamComplete {
+  type: 'complete';
+  metadata: NonNullable<ElevationResponse['metadata']>;
+}
+
+export interface ElevationStreamError {
+  type: 'error';
+  error: string;
+}
+
+export type ElevationStreamEvent =
+  | ElevationStreamChunk
+  | ElevationStreamComplete
+  | ElevationStreamError;
 
 export interface SRTMTileInfo {
   filename: string;

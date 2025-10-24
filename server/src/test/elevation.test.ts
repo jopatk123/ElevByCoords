@@ -84,6 +84,39 @@ describe('Elevation API', () => {
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toContain('text/csv');
     });
+
+    it('should stream results when requested', async () => {
+      const coordinates = [
+        { longitude: 116.3974, latitude: 39.9093 },
+        { longitude: 121.4737, latitude: 31.2304 },
+        { longitude: 113.2644, latitude: 23.1291 }
+      ];
+
+      const response = await request(app)
+        .post('/api/v1/elevation/batch')
+        .set('Accept', 'application/x-ndjson')
+        .send({ coordinates, stream: true });
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('application/x-ndjson');
+
+      const body = typeof response.text === 'string'
+        ? response.text
+        : typeof response.body === 'string'
+          ? response.body
+          : '';
+      expect(body.length).toBeGreaterThan(0);
+      const lines = body.trim().split('\n').filter(Boolean);
+      expect(lines.length).toBeGreaterThanOrEqual(2);
+
+      const firstEvent = JSON.parse(lines[0]);
+      expect(firstEvent.type).toBe('chunk');
+      expect(Array.isArray(firstEvent.data)).toBe(true);
+
+      const lastEvent = JSON.parse(lines[lines.length - 1]);
+      expect(lastEvent.type).toBe('complete');
+      expect(lastEvent.metadata.totalPoints).toBe(coordinates.length);
+    });
   });
 
   describe('GET /api/v1/elevation/tiles', () => {
