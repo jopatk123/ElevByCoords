@@ -62,6 +62,14 @@ export interface SRTMTileInfo {
     west: number;
   };
   resolution: number;
+  pixelSize?: {
+    x: number;
+    y: number;
+  };
+  dimensions?: {
+    width: number;
+    height: number;
+  };
 }
 
 export interface BatchUploadResult {

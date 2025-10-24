@@ -16,7 +16,7 @@
 
 ### 后端
 - **框架**: Node.js + Express + TypeScript
-- **数据处理**: GDAL (地理数据抽象库)
+- **数据处理**: geotiff (GeoTIFF 数据解析)
 - **验证**: Joi
 - **安全**: Helmet + CORS
 - **测试**: Vitest + Supertest
@@ -35,6 +35,7 @@
 - **精度**: 约 90 米 (3 弧秒)
 - **覆盖范围**: 中国东南部地区
 - **数据格式**: GeoTIFF
+- **无数据处理**: 若坐标超出瓦片覆盖范围或像元缺失，返回 `elevation = null` 并附带错误说明
 
 ## 快速开始
 
@@ -42,7 +43,6 @@
 
 - Node.js 20+
 - npm 10+
-- GDAL 库 (用于处理地理数据)
 
 ### 安装依赖
 
@@ -103,7 +103,7 @@ docker-compose --profile prod up -d
 ### 单点查询
 
 ```http
-GET /api/v1/elevation?longitude=116.3974&latitude=39.9093
+GET /api/v1/elevation?longitude=121.4737&latitude=31.2304
 ```
 
 ### 批量查询
@@ -114,7 +114,7 @@ Content-Type: application/json
 
 {
   "coordinates": [
-    {"longitude": 116.3974, "latitude": 39.9093},
+    {"longitude": 118.7969, "latitude": 32.0603},
     {"longitude": 121.4737, "latitude": 31.2304}
   ],
   "format": "json"
@@ -132,14 +132,14 @@ GET /api/v1/elevation/tiles
 ### CSV 格式
 ```csv
 longitude,latitude
-116.3974,39.9093
+118.7969,32.0603
 121.4737,31.2304
 ```
 
 ### JSON 格式
 ```json
 [
-  {"longitude": 116.3974, "latitude": 39.9093},
+  {"longitude": 118.7969, "latitude": 32.0603},
   {"longitude": 121.4737, "latitude": 31.2304}
 ]
 ```

@@ -13,8 +13,8 @@ describe('Elevation API', () => {
       const response = await request(app)
         .get('/api/v1/elevation')
         .query({
-          longitude: 116.3974,
-          latitude: 39.9093
+          longitude: 121.4737,
+          latitude: 31.2304
         });
 
       expect(response.status).toBe(200);
@@ -23,6 +23,8 @@ describe('Elevation API', () => {
       expect(response.body.data[0]).toHaveProperty('longitude');
       expect(response.body.data[0]).toHaveProperty('latitude');
       expect(response.body.data[0]).toHaveProperty('elevation');
+      expect(response.body.data[0].elevation).not.toBeNull();
+      expect(response.body.metadata.dataSource).toBe('SRTM GeoTIFF');
     });
 
     it('should return error for invalid coordinates', async () => {
@@ -49,8 +51,8 @@ describe('Elevation API', () => {
   describe('POST /api/v1/elevation/batch', () => {
     it('should return elevations for multiple coordinates', async () => {
       const coordinates = [
-        { longitude: 116.3974, latitude: 39.9093 },
-        { longitude: 121.4737, latitude: 31.2304 }
+        { longitude: 121.4737, latitude: 31.2304 },
+        { longitude: 118.7969, latitude: 32.0603 }
       ];
 
       const response = await request(app)
@@ -61,6 +63,7 @@ describe('Elevation API', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveLength(2);
       expect(response.body.metadata).toHaveProperty('totalPoints', 2);
+      expect(response.body.metadata.dataSource).toBe('SRTM GeoTIFF');
     });
 
     it('should return error for empty coordinates array', async () => {
@@ -74,7 +77,7 @@ describe('Elevation API', () => {
 
     it('should return CSV format when requested', async () => {
       const coordinates = [
-        { longitude: 116.3974, latitude: 39.9093 }
+        { longitude: 121.4737, latitude: 31.2304 }
       ];
 
       const response = await request(app)
@@ -87,9 +90,9 @@ describe('Elevation API', () => {
 
     it('should stream results when requested', async () => {
       const coordinates = [
-        { longitude: 116.3974, latitude: 39.9093 },
+        { longitude: 118.7969, latitude: 32.0603 },
         { longitude: 121.4737, latitude: 31.2304 },
-        { longitude: 113.2644, latitude: 23.1291 }
+        { longitude: 119.2965, latitude: 26.0745 }
       ];
 
       const response = await request(app)
@@ -116,6 +119,7 @@ describe('Elevation API', () => {
       const lastEvent = JSON.parse(lines[lines.length - 1]);
       expect(lastEvent.type).toBe('complete');
       expect(lastEvent.metadata.totalPoints).toBe(coordinates.length);
+      expect(lastEvent.metadata.dataSource).toBe('SRTM GeoTIFF');
     });
   });
 

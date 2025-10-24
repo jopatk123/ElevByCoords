@@ -90,14 +90,14 @@ describe('API Service Utils', () => {
           totalPoints: 2,
           validPoints: 1,
           processingTime: 100,
-          dataSource: 'SRTM'
+          dataSource: 'SRTM GeoTIFF'
         }
       };
 
       expect(response.metadata.totalPoints).toBe(2);
       expect(response.metadata.validPoints).toBe(1);
       expect(response.metadata.processingTime).toBeGreaterThan(0);
-      expect(response.metadata.dataSource).toBe('SRTM');
+  expect(response.metadata.dataSource).toBe('SRTM GeoTIFF');
     });
   });
 

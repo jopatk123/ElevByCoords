@@ -55,7 +55,7 @@ export class ElevationController {
           totalPoints: 1,
           validPoints: result.elevation !== null ? 1 : 0,
           processingTime,
-          dataSource: 'SRTM'
+          dataSource: 'SRTM GeoTIFF'
         }
       };
 
@@ -135,7 +135,7 @@ export class ElevationController {
           totalPoints: results.length,
           validPoints,
           processingTime,
-          dataSource: 'SRTM'
+          dataSource: 'SRTM GeoTIFF'
         }
       };
 
@@ -196,7 +196,7 @@ export class ElevationController {
           totalPoints,
           validPoints,
           processingTime,
-          dataSource: 'SRTM'
+          dataSource: 'SRTM GeoTIFF'
         }
       };
       res.write(`${JSON.stringify(completePayload)}\n`);
@@ -216,7 +216,7 @@ export class ElevationController {
 
   async getTileInfo(_req: Request, res: Response): Promise<void> {
     try {
-      const tileInfo = elevationService.getTileInfo();
+  const tileInfo = await elevationService.getTileInfo();
       res.json({
         success: true,
         data: tileInfo
@@ -258,18 +258,18 @@ export class ElevationController {
   private generateCSVTemplate(): string {
     const header = 'longitude,latitude\n';
     const examples = [
-      '116.3974,39.9093',  // 北京
+      '118.7969,32.0603',  // 南京
       '121.4737,31.2304',  // 上海
-      '113.2644,23.1291'   // 广州
+      '119.2965,26.0745'   // 福州
     ].join('\n');
     return header + examples;
   }
 
   private generateJSONTemplate(): any[] {
     return [
-      { longitude: 116.3974, latitude: 39.9093 },  // 北京
+      { longitude: 118.7969, latitude: 32.0603 },  // 南京
       { longitude: 121.4737, latitude: 31.2304 },  // 上海
-      { longitude: 113.2644, latitude: 23.1291 }   // 广州
+      { longitude: 119.2965, latitude: 26.0745 }   // 福州
     ];
   }
 

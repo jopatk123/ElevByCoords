@@ -162,7 +162,7 @@ class ApiService {
         totalPoints: aggregated.length,
         validPoints: aggregated.filter(point => point.elevation !== null).length,
         processingTime: 0,
-        dataSource: 'SRTM'
+        dataSource: 'SRTM GeoTIFF'
       }
     };
   }

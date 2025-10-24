@@ -113,7 +113,7 @@ describe('Elevation Store', () => {
           totalPoints: 1,
           validPoints: 1,
           processingTime: 50,
-          dataSource: 'SRTM'
+          dataSource: 'SRTM GeoTIFF'
         }
       };
       
@@ -198,7 +198,7 @@ describe('Elevation Store', () => {
           totalPoints: 2,
           validPoints: 2,
           processingTime: 100,
-          dataSource: 'SRTM'
+          dataSource: 'SRTM GeoTIFF'
         }
       };
       
@@ -230,7 +230,7 @@ describe('Elevation Store', () => {
           totalPoints: 2,
           validPoints: 1,
           processingTime: 100,
-          dataSource: 'SRTM'
+          dataSource: 'SRTM GeoTIFF'
         }
       };
       
