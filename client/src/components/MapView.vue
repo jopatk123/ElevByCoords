@@ -19,6 +19,14 @@
         {{ addMode ? '退出添加' : '添加点位' }}
       </el-button>
       <el-button 
+        type="info" 
+        :icon="MapIcon"
+        @click="toggleMapLayer"
+        :title="isSatellite ? '切换到街道地图' : '切换到卫星图像'"
+      >
+        {{ isSatellite ? '街道' : '卫星' }}
+      </el-button>
+      <el-button 
         type="warning" 
         :icon="DeleteIcon"
         @click="clearMarkers"
@@ -33,7 +41,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { ElMessage } from 'element-plus';
-import { Location as LocationIcon, Plus as PlusIcon, Delete as DeleteIcon } from '@element-plus/icons-vue';
+import { Location as LocationIcon, Plus as PlusIcon, Delete as DeleteIcon, MapLocation as MapIcon } from '@element-plus/icons-vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import config from '@/constants/env';
@@ -67,6 +75,11 @@ const map = ref<L.Map | null>(null);
 const markers = ref<L.Marker[]>([]);
 const addMode = ref(false);
 const locating = ref(false);
+const isSatellite = ref(false);
+
+// 图层引用
+let streetLayer: L.TileLayer | null = null;
+let satelliteLayer: L.TileLayer | null = null;
 
 // 初始化地图
 onMounted(() => {
@@ -87,10 +100,20 @@ watch(() => props.coordinates, (newCoords) => {
 function initMap(): void {
   map.value = L.map('map').setView(config.mapDefaultCenter, config.mapDefaultZoom);
 
-  // 添加瓦片图层
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-  }).addTo(map.value);
+  // 创建街道图层（OpenStreetMap）
+  streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+    maxZoom: 19
+  });
+
+  // 创建卫星图层（Esri World Imagery - 开源免费）
+  satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: '© Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
+    maxZoom: 19
+  });
+
+  // 默认添加街道图层
+  streetLayer.addTo(map.value);
 
   // 添加点击事件
   map.value.on('click', onMapClick);
@@ -196,6 +219,29 @@ function toggleAddMode(): void {
   }
 }
 
+function toggleMapLayer(): void {
+  if (!map.value || !streetLayer || !satelliteLayer) return;
+
+  try {
+    if (isSatellite.value) {
+      // 切换到街道地图
+      map.value.removeLayer(satelliteLayer);
+      streetLayer.addTo(map.value);
+      isSatellite.value = false;
+      ElMessage.success('已切换到街道地图');
+    } else {
+      // 切换到卫星图像
+      map.value.removeLayer(streetLayer);
+      satelliteLayer.addTo(map.value);
+      isSatellite.value = true;
+      ElMessage.success('已切换到卫星图像');
+    }
+  } catch (error) {
+    ElMessage.error('图层切换失败');
+    console.error('Layer toggle error:', error);
+  }
+}
+
 function getCurrentLocation(): void {
   if (!navigator.geolocation) {
     ElMessage.error('浏览器不支持地理定位');
@@ -243,7 +289,8 @@ defineExpose({
   addMarker,
   clearMarkers,
   updateMarkers,
-  flyToCoordinate
+  flyToCoordinate,
+  toggleMapLayer
 });
 </script>
 

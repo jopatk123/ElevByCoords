@@ -7,7 +7,8 @@
 - 🗺️ **多种查询方式**：单点查询、批量查询、文件上传
 - 📊 **丰富的数据格式**：支持 CSV、JSON、GeoJSON 导出
 - 🎯 **交互式地图**：可视化查询点位，支持点击添加
-- 📁 **文件上传**：支持 CSV、JSON、TXT、Excel 格式
+- �️ **地图图层切换**：支持街道地图和卫星图像切换（使用Esri World Imagery）
+- �📁 **文件上传**：支持 CSV、JSON、TXT、Excel 格式
 - 📈 **查询统计**：实时显示查询成功率和处理时间
 - 🔍 **结果筛选**：支持按状态筛选和关键词搜索
 - 📱 **响应式设计**：适配桌面和移动设备
@@ -25,7 +26,7 @@
 - **框架**: Vue 3 + TypeScript + Vite
 - **UI 组件**: Element Plus
 - **状态管理**: Pinia
-- **地图**: Leaflet
+- **地图**: Leaflet (OpenStreetMap + Esri World Imagery)
 - **HTTP**: Axios
 - **文件处理**: PapaParse
 
