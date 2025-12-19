@@ -37,20 +37,20 @@ RUN apk add --no-cache gdal gdal-tools
 WORKDIR /app
 
 # 创建非 root 用户
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 appgroup
+RUN adduser --system --uid 1001 appuser
 
 # 复制构建产物
-COPY --from=builder --chown=nextjs:nodejs /app/server/dist ./server/dist
-COPY --from=builder --chown=nextjs:nodejs /app/client/dist ./client/dist
-COPY --from=deps --chown=nextjs:nodejs /app/server/node_modules ./server/node_modules
-COPY --from=builder --chown=nextjs:nodejs /app/server/package.json ./server/
-COPY --from=builder --chown=nextjs:nodejs /app/shared ./shared
+COPY --from=builder --chown=appuser:appgroup /app/server/dist ./server/dist
+COPY --from=builder --chown=appuser:appgroup /app/client/dist ./client/dist
+COPY --from=deps --chown=appuser:appgroup /app/server/node_modules ./server/node_modules
+COPY --from=builder --chown=appuser:appgroup /app/server/package.json ./server/
+COPY --from=builder --chown=appuser:appgroup /app/shared ./shared
 
 # 复制数据文件
-COPY --chown=nextjs:nodejs ./server/GD ./server/GD
+COPY --chown=appuser:appgroup ./server/GD ./server/GD
 
-USER nextjs
+USER appuser
 
 EXPOSE 3001
 

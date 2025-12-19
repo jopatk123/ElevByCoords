@@ -64,7 +64,7 @@
 - **目录优化**：
   - 大文件必须抽出为子目录：
 
-    ```
+    ```text
     components/
       UserCard/
         UserCard.vue
@@ -80,7 +80,7 @@
 - **测试拆分**：
   - 每个 `describe` 建议单独测试文件，例如：
 
-    ```
+    ```text
     tests/services/user/
       user-login.test.ts
       user-register.test.ts

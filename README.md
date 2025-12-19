@@ -7,8 +7,8 @@
 - 🗺️ **多种查询方式**：单点查询、批量查询、文件上传
 - 📊 **丰富的数据格式**：支持 CSV、JSON、GeoJSON 导出
 - 🎯 **交互式地图**：可视化查询点位，支持点击添加
-- �️ **地图图层切换**：支持街道地图和卫星图像切换（使用Esri World Imagery）
-- �📁 **文件上传**：支持 CSV、JSON、TXT、Excel 格式
+- 🛰️ **地图图层切换**：支持街道地图和卫星图像切换（使用Esri World Imagery）
+- 📁 **文件上传**：支持 CSV、JSON、TXT、Excel 格式
 - 📈 **查询统计**：实时显示查询成功率和处理时间
 - 🔍 **结果筛选**：支持按状态筛选和关键词搜索
 - 📱 **响应式设计**：适配桌面和移动设备
@@ -16,6 +16,7 @@
 ## 技术栈
 
 ### 后端
+
 - **框架**: Node.js + Express + TypeScript
 - **数据处理**: geotiff (GeoTIFF 数据解析)
 - **验证**: Joi
@@ -23,6 +24,7 @@
 - **测试**: Vitest + Supertest
 
 ### 前端
+
 - **框架**: Vue 3 + TypeScript + Vite
 - **UI 组件**: Element Plus
 - **状态管理**: Pinia
@@ -131,6 +133,7 @@ GET /api/v1/elevation/tiles
 ## 文件格式说明
 
 ### CSV 格式
+
 ```csv
 longitude,latitude
 118.7969,32.0603
@@ -138,6 +141,7 @@ longitude,latitude
 ```
 
 ### JSON 格式
+
 ```json
 [
   {"longitude": 118.7969, "latitude": 32.0603},
@@ -167,7 +171,7 @@ npm run format
 
 ## 项目结构
 
-```
+```text
 ElevByCoords/
 ├── client/                 # Vue 3 前端应用
 │   ├── src/

@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { mount, VueWrapper } from '@vue/test-utils';
 import { nextTick } from 'vue';
 import MapView from './MapView.vue';
-import * as ElementPlusIconsVue from '@element-plus/icons-vue';
 
 // Mock Leaflet
 const mockMap = {

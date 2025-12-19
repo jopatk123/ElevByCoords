@@ -1,28 +1,6 @@
 version: '3.8'
 
 services:
-  # 开发环境
-  app-dev:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    ports:
-      - "3001:3001"
-      - "5173:5173"
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/client/node_modules
-      - /app/server/node_modules
-    environment:
-      - NODE_ENV=development
-      - PORT=3001
-      - CORS_ORIGIN=http://localhost:5173
-    command: npm run dev
-    profiles:
-      - dev
-
-  # 生产环境
   app:
     build:
       context: .
@@ -35,5 +13,3 @@ services:
     volumes:
       - ./server/GD:/app/server/GD:ro
     restart: unless-stopped
-    profiles:
-      - prod
