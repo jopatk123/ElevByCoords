@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Location as LocationIcon, Plus as PlusIcon, Delete as DeleteIcon, MapLocation as MapIcon } from '@element-plus/icons-vue';
 import L from 'leaflet';
@@ -83,7 +83,10 @@ let satelliteLayer: L.TileLayer | null = null;
 
 // 初始化地图
 onMounted(() => {
-  initMap();
+  // 确保 DOM 完全就绪后初始化地图
+  nextTick(() => {
+    initMap();
+  });
 });
 
 onUnmounted(() => {

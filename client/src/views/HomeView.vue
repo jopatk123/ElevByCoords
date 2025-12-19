@@ -220,11 +220,15 @@ function showInfo(): void {
     }
     
     .content-container {
-      height: calc(100vh - 60px);
+      display: flex;
+      flex: 1;
+      height: auto;
+      min-height: 0;
       
       .left-panel {
         border-right: 1px solid var(--el-border-color);
         background-color: var(--el-bg-color-page);
+        flex-shrink: 0;
         
         .panel-content {
           height: 100%;
@@ -238,7 +242,8 @@ function showInfo(): void {
       
       .map-main {
         padding: 0;
-        height: 100%;
+        flex: 1;
+        min-height: 0;
       }
     }
   }

@@ -19,8 +19,6 @@ COPY server/package*.json ./server/
 # 安装依赖
 FROM base AS deps
 RUN npm ci --only=production && npm cache clean --force
-RUN cd client && npm ci --only=production && npm cache clean --force
-RUN cd server && npm ci --only=production && npm cache clean --force
 
 # 构建阶段
 FROM base AS builder
@@ -43,7 +41,7 @@ RUN adduser --system --uid 1001 appuser
 # 复制构建产物
 COPY --from=builder --chown=appuser:appgroup /app/server/dist ./server/dist
 COPY --from=builder --chown=appuser:appgroup /app/client/dist ./client/dist
-COPY --from=deps --chown=appuser:appgroup /app/server/node_modules ./server/node_modules
+COPY --from=deps --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=builder --chown=appuser:appgroup /app/server/package.json ./server/
 COPY --from=builder --chown=appuser:appgroup /app/shared ./shared
 

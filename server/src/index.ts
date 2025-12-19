@@ -8,8 +8,18 @@ import elevationRoutes from './routes/elevation.routes';
 
 const app = express();
 
-// 安全中间件
-app.use(helmet());
+// 安全中间件（定制 CSP 以允许瓦片图层和成功加载 Leaflet）
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com', 'https://unpkg.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com'],
+        imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org', 'https://server.arcgisonline.com'],
+        connectSrc: ["'self'", 'https://*.tile.openstreetmap.org', 'https://server.arcgisonline.com'],
+    }
+  }
+}));
 app.use(cors({
   origin: config.corsOrigin,
   credentials: true
@@ -25,6 +35,11 @@ if (config.enableRequestLogging) {
   app.use(morgan('combined'));
 }
 
+// 静态文件服务（客户端构建产物）
+import path from 'path';
+const clientDistPath = path.join(__dirname, '../../client/dist');
+app.use(express.static(clientDistPath));
+
 // 健康检查
 app.get('/health', (_req, res) => {
   res.json({ 
@@ -36,6 +51,11 @@ app.get('/health', (_req, res) => {
 
 // API 路由
 app.use('/api/v1/elevation', elevationRoutes);
+
+// SPA 回退：非 API 路由都返回 index.html
+app.get(/^(?!\/api\/).*$/, (_req, res) => {
+  res.sendFile(path.join(clientDistPath, 'index.html'));
+});
 
 // 404 处理
 app.use('*', (_req, res) => {
