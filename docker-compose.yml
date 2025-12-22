@@ -5,10 +5,10 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "40000:40000"
     environment:
       - NODE_ENV=production
-      - PORT=3001
+      - PORT=40000
     volumes:
       - ./server/GD:/app/server/GD:ro
     restart: unless-stopped

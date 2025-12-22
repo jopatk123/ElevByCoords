@@ -50,9 +50,9 @@ COPY --chown=appuser:appgroup ./server/GD ./server/GD
 
 USER appuser
 
-EXPOSE 3001
+EXPOSE 40000
 
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=40000
 
 CMD ["node", "server/dist/index.js"]

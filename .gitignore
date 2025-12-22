@@ -59,7 +59,6 @@ docker-compose.override.yml
 
 ## Environment files
 .env
-.env.*
 
 ## Logs and temp
 tmp/
