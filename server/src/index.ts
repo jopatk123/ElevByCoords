@@ -15,7 +15,7 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com', 'https://unpkg.com'],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com'],
-      imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org', 'https://server.arcgisonline.com'],
+      imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org', 'https://server.arcgisonline.com', 'https://cdnjs.cloudflare.com'],
       connectSrc: ["'self'", 'http://*', 'https://*', 'https://*.tile.openstreetmap.org', 'https://server.arcgisonline.com'],
     }
   },

@@ -85,3 +85,4 @@ temp/
 
 ## keep types built files out
 shared/*.js
+elevbycoords-app.tar
