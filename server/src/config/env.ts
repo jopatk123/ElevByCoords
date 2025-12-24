@@ -26,22 +26,37 @@ const parseOrigins = (value?: string): string[] => {
     .filter(Boolean);
 };
 
-const defaultCorsOrigins = [
+const unique = (origins: string[]): string[] => Array.from(new Set(origins));
+
+const buildDefaultCorsOrigins = (port: number): string[] => unique([
+  `http://localhost:${port}`,
+  `http://127.0.0.1:${port}`,
+  `http://host.docker.internal:${port}`,
+  `https://localhost:${port}`,
+  `https://127.0.0.1:${port}`,
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:4173',
   'http://127.0.0.1:4173'
-];
+]);
+
+const buildInternalOrigins = (port: number): string[] => unique([
+  `http://localhost:${port}`,
+  `http://127.0.0.1:${port}`,
+  `http://host.docker.internal:${port}`,
+  `https://localhost:${port}`,
+  `https://127.0.0.1:${port}`
+]);
+
+const port = parseInt(process.env.PORT || '40000', 10);
 
 const config: Config = {
-  port: parseInt(process.env.PORT || '40000', 10),
+  port,
   nodeEnv: process.env.NODE_ENV || 'development',
   corsOrigins: (() => {
     const envOrigins = parseOrigins(process.env.CORS_ORIGIN);
-    if (envOrigins.length > 0) {
-      return envOrigins;
-    }
-    return defaultCorsOrigins;
+    const baseOrigins = envOrigins.length > 0 ? envOrigins : buildDefaultCorsOrigins(port);
+    return unique([...baseOrigins, ...buildInternalOrigins(port)]);
   })(),
   dataPath: process.env.DATA_PATH || path.join(__dirname, '../../GD'),
   maxUploadSize: parseInt(process.env.MAX_UPLOAD_SIZE || '10485760', 10), // 10MB
