@@ -13,6 +13,7 @@ interface Config {
   batchChunkSize: number;
   logLevel: string;
   enableRequestLogging: boolean;
+  enableHsts: boolean;
 }
 
 const parseOrigins = (value?: string): string[] => {
@@ -64,6 +65,7 @@ const config: Config = {
   batchChunkSize: Math.max(1, parseInt(process.env.BATCH_CHUNK_SIZE || '500', 10)),
   logLevel: process.env.LOG_LEVEL || 'info',
   enableRequestLogging: process.env.ENABLE_REQUEST_LOGGING !== 'false',
+  enableHsts: process.env.ENABLE_HSTS === 'true',
 };
 
 export default config;

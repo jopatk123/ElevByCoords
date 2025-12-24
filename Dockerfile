@@ -54,5 +54,7 @@ EXPOSE 40000
 
 ENV NODE_ENV=production
 ENV PORT=40000
+# CORS 配置 - 允许 HTTP 访问
+ENV CORS_ORIGIN=*
 
 CMD ["node", "server/dist/index.js"]

@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
+import helmet, { type HelmetOptions } from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import config from './config/env';
@@ -8,23 +8,33 @@ import elevationRoutes from './routes/elevation.routes';
 
 const app = express();
 
+// HTTP 请求头配置
+app.use((_req, res, next) => {
+  // 移除 Origin-Agent-Cluster，使用相对协议 URL
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  next();
+});
+
 const allowedOrigins = config.corsOrigins;
 const allowAllOrigins = allowedOrigins.includes('*');
 
 // 安全中间件（定制 CSP 以允许瓦片图层和成功加载 Leaflet）
-app.use(helmet({
+const helmetOptions: HelmetOptions = {
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com', 'https://unpkg.com'],
-      styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com'],
-      imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org', 'https://server.arcgisonline.com', 'https://cdnjs.cloudflare.com'],
-      connectSrc: ["'self'", 'http://*', 'https://*', 'https://*.tile.openstreetmap.org', 'https://server.arcgisonline.com'],
+      scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com', 'https://unpkg.com', 'http://cdnjs.cloudflare.com', 'http://unpkg.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'http://cdnjs.cloudflare.com'],
+      imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org', 'http://*.tile.openstreetmap.org', 'https://server.arcgisonline.com', 'http://server.arcgisonline.com', 'https://cdnjs.cloudflare.com'],
+      connectSrc: ["'self'", 'http://*', 'https://*', 'ws:', 'wss:'],
     }
   },
   crossOriginOpenerPolicy: false,
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
-}));
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  hsts: false // 禁用 HSTS，允许 HTTP
+};
+
+app.use(helmet(helmetOptions));
 app.use(cors({
   origin: (origin, callback) => {
     if (allowAllOrigins || !origin) {

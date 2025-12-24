@@ -47,12 +47,15 @@ import 'leaflet/dist/leaflet.css';
 import config from '@/constants/env';
 import type { Coordinate } from '@/types/shared';
 
+// 获取当前协议
+const protocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
+
 // 修复 Leaflet 默认图标问题
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconRetinaUrl: `${protocol}//cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png`,
+  iconUrl: `${protocol}//cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png`,
+  shadowUrl: `${protocol}//cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png`,
 });
 
 interface Props {
@@ -103,14 +106,14 @@ watch(() => props.coordinates, (newCoords) => {
 function initMap(): void {
   map.value = L.map('map').setView(config.mapDefaultCenter, config.mapDefaultZoom);
 
-  // 创建街道图层（OpenStreetMap）
-  streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // 创建街道图层（OpenStreetMap）- 使用协议自适应 URL
+  streetLayer = L.tileLayer('//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors',
     maxZoom: 19
   });
 
-  // 创建卫星图层（Esri World Imagery - 开源免费）
-  satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  // 创建卫星图层（Esri World Imagery - 开源免费）- 使用协议自适应 URL
+  satelliteLayer = L.tileLayer('//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     attribution: '© Esri, DigitalGlobe, GeoEye, Earthstar Geographics, CNES/Airbus DS, USDA, USGS, AeroGRID, IGN, and the GIS User Community',
     maxZoom: 19
   });
