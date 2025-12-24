@@ -8,6 +8,9 @@ import elevationRoutes from './routes/elevation.routes';
 
 const app = express();
 
+const allowedOrigins = config.corsOrigins;
+const allowAllOrigins = allowedOrigins.includes('*');
+
 // 安全中间件（定制 CSP 以允许瓦片图层和成功加载 Leaflet）
 app.use(helmet({
   contentSecurityPolicy: {
@@ -23,7 +26,18 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 app.use(cors({
-  origin: config.corsOrigin,
+  origin: (origin, callback) => {
+    if (allowAllOrigins || !origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.warn(`Blocked CORS request from disallowed origin: ${origin}`);
+    return callback(new Error('Origin not allowed by CORS policy'));
+  },
   credentials: true
 }));
 

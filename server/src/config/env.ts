@@ -6,7 +6,7 @@ dotenv.config();
 interface Config {
   port: number;
   nodeEnv: string;
-  corsOrigin: string;
+  corsOrigins: string[];
   dataPath: string;
   maxUploadSize: number;
   maxBatchSize: number;
@@ -15,10 +15,34 @@ interface Config {
   enableRequestLogging: boolean;
 }
 
+const parseOrigins = (value?: string): string[] => {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+};
+
+const defaultCorsOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:4173',
+  'http://127.0.0.1:4173'
+];
+
 const config: Config = {
   port: parseInt(process.env.PORT || '40000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  corsOrigins: (() => {
+    const envOrigins = parseOrigins(process.env.CORS_ORIGIN);
+    if (envOrigins.length > 0) {
+      return envOrigins;
+    }
+    return defaultCorsOrigins;
+  })(),
   dataPath: process.env.DATA_PATH || path.join(__dirname, '../../GD'),
   maxUploadSize: parseInt(process.env.MAX_UPLOAD_SIZE || '10485760', 10), // 10MB
   maxBatchSize: parseInt(process.env.MAX_BATCH_SIZE || '20000', 10),
