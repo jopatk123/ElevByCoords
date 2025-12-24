@@ -27,10 +27,12 @@ const helmetOptions: HelmetOptions = {
       styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'http://cdnjs.cloudflare.com'],
       imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org', 'http://*.tile.openstreetmap.org', 'https://server.arcgisonline.com', 'http://server.arcgisonline.com', 'https://cdnjs.cloudflare.com'],
       connectSrc: ["'self'", 'http://*', 'https://*', 'ws:', 'wss:'],
+      upgradeInsecureRequests: null, // 禁用自动升级到 HTTPS
     }
   },
   crossOriginOpenerPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  originAgentCluster: false, // 禁用 Origin-Agent-Cluster 头部
   hsts: false // 禁用 HSTS，允许 HTTP
 };
 
