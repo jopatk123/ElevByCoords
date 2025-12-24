@@ -25,7 +25,7 @@ const helmetOptions: HelmetOptions = {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com', 'https://unpkg.com', 'http://cdnjs.cloudflare.com', 'http://unpkg.com'],
       styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'http://cdnjs.cloudflare.com'],
-      imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org', 'http://*.tile.openstreetmap.org', 'https://server.arcgisonline.com', 'http://server.arcgisonline.com', 'https://cdnjs.cloudflare.com'],
+      imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org', 'http://*.tile.openstreetmap.org', 'https://server.arcgisonline.com', 'http://server.arcgisonline.com', 'https://cdnjs.cloudflare.com', 'http://cdnjs.cloudflare.com'],
       connectSrc: ["'self'", 'http://*', 'https://*', 'ws:', 'wss:'],
       upgradeInsecureRequests: null, // 禁用自动升级到 HTTPS
     }
