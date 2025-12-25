@@ -9,6 +9,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=40000
-    volumes:
-      - ./server/GD:/app/server/GD:ro
+    # 如果服务器上没有 GD 数据文件，注释掉下面的 volumes 挂载，使用镜像内置的数据
+    # volumes:
+    #   - ./server/GD:/app/server/GD:ro
     restart: unless-stopped
