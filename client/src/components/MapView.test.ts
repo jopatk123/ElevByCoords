@@ -118,7 +118,7 @@ describe('MapView.vue', () => {
       
       // 验证街道图层被调用
       expect(L.default.tileLayer).toHaveBeenCalledWith(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         expect.objectContaining({
           attribution: '© OpenStreetMap contributors',
         })
@@ -126,7 +126,7 @@ describe('MapView.vue', () => {
       
       // 验证卫星图层被调用
       expect(L.default.tileLayer).toHaveBeenCalledWith(
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        '//server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
         expect.objectContaining({
           attribution: expect.stringContaining('Esri'),
         })
@@ -164,12 +164,12 @@ describe('MapView.vue', () => {
       });
 
       const buttonText = wrapper.text();
-      expect(buttonText).toContain('卫星'); // 默认显示"卫星"按钮（因为当前是街道地图）
+      expect(buttonText).toContain('街道'); // 默认显示"街道"按钮（因为当前是卫星图像）
     });
   });
 
   describe('图层切换功能', () => {
-    it('应该能够切换到卫星图层', async () => {
+    it('应该能够切换到街道图层', async () => {
       wrapper = mount(MapView, {
         global: {
           stubs: {
@@ -183,9 +183,9 @@ describe('MapView.vue', () => {
 
       await nextTick();
 
-      // 找到图层切换按钮（包含"卫星"文本的按钮）
+      // 找到图层切换按钮（默认包含"街道"文本的按钮）
       const buttons = wrapper.findAll('.el-button');
-      const mapToggleButton = buttons.find(btn => btn.text().includes('卫星'));
+      const mapToggleButton = buttons.find(btn => btn.text().includes('街道'));
       
       expect(mapToggleButton).toBeDefined();
       
@@ -194,8 +194,8 @@ describe('MapView.vue', () => {
         await mapToggleButton.trigger('click');
         await nextTick();
 
-        // 验证状态改变 - 按钮文本应该变为"街道"
-        expect(mapToggleButton.text()).toContain('街道');
+        // 验证状态改变 - 按钮文本应该变为"卫星"
+        expect(mapToggleButton.text()).toContain('卫星');
       }
     });
 

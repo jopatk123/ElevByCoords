@@ -18,18 +18,9 @@ app.use((_req, res, next) => {
 const allowedOrigins = config.corsOrigins;
 const allowAllOrigins = allowedOrigins.includes('*');
 
-// 安全中间件（定制 CSP 以允许瓦片图层和成功加载 Leaflet）
+// 安全中间件
 const helmetOptions: HelmetOptions = {
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", 'https://cdnjs.cloudflare.com', 'https://unpkg.com', 'http://cdnjs.cloudflare.com', 'http://unpkg.com'],
-      styleSrc: ["'self'", "'unsafe-inline'", 'https://cdnjs.cloudflare.com', 'http://cdnjs.cloudflare.com'],
-      imgSrc: ["'self'", 'data:', 'https://*.tile.openstreetmap.org', 'http://*.tile.openstreetmap.org', 'https://server.arcgisonline.com', 'http://server.arcgisonline.com', 'https://cdnjs.cloudflare.com', 'http://cdnjs.cloudflare.com'],
-      connectSrc: ["'self'", 'http://*', 'https://*', 'ws:', 'wss:'],
-      upgradeInsecureRequests: null, // 禁用自动升级到 HTTPS
-    }
-  },
+  contentSecurityPolicy: false, // 禁用 CSP
   crossOriginOpenerPolicy: false,
   crossOriginResourcePolicy: { policy: 'cross-origin' },
   originAgentCluster: false, // 禁用 Origin-Agent-Cluster 头部

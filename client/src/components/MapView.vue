@@ -78,7 +78,7 @@ const map = ref<L.Map | null>(null);
 const markers = ref<L.Marker[]>([]);
 const addMode = ref(false);
 const locating = ref(false);
-const isSatellite = ref(false);
+const isSatellite = ref(true);
 
 // 图层引用
 let streetLayer: L.TileLayer | null = null;
@@ -118,8 +118,8 @@ function initMap(): void {
     maxZoom: 19
   });
 
-  // 默认添加街道图层
-  streetLayer.addTo(map.value);
+  // 默认添加卫星图层
+  satelliteLayer.addTo(map.value);
 
   // 添加点击事件
   map.value.on('click', onMapClick);
