@@ -135,6 +135,10 @@ function onMapClick(e: L.LeafletMouseEvent): void {
 
   addMarker(coordinate);
   emit('coordinate-added', coordinate);
+
+  // 添加点位后自动退出添加模式
+  addMode.value = false;
+  ElMessage.success('点位已添加，已自动退出添加模式');
 }
 
 function addMarker(coordinate: Coordinate): void {

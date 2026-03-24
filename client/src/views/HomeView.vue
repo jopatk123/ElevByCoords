@@ -23,6 +23,7 @@
             <!-- 查询面板 -->
             <QueryPanel 
               :map-coordinates="mapCoordinates"
+              :selected-coordinate="selectedCoordinate"
               @coordinate-added="onCoordinateAdded"
               @locate-coordinate="onLocateCoordinateFromPanel"
             />
@@ -92,6 +93,7 @@ import type { Coordinate, ElevationPoint } from '@/types/shared';
 // 响应式数据
 const mapViewRef = ref<InstanceType<typeof MapView>>();
 const mapCoordinates = ref<Coordinate[]>([]);
+const selectedCoordinate = ref<Coordinate | null>(null);
 const infoDialogVisible = ref(false);
 const tileInfo = ref<any[]>([]);
 const maxBatchSize = config.maxBatchSize;
@@ -127,6 +129,9 @@ function onCoordinateAdded(coordinate: Coordinate): void {
 function onMapCoordinateAdded(coordinate: Coordinate): void {
   // 从地图添加坐标
   mapCoordinates.value.push(coordinate);
+
+  // 同步到单点查询面板并自动查询
+  selectedCoordinate.value = coordinate;
 }
 
 function onMapCoordinatesChanged(coordinates: Coordinate[]): void {

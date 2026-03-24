@@ -159,7 +159,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, defineEmits } from 'vue';
+import { ref, computed, watch, nextTick, defineEmits } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { Search as SearchIcon, Location as LocationIcon, Upload as UploadIcon, Download as DownloadIcon, ArrowDown, UploadFilled } from '@element-plus/icons-vue';
 import type { FormInstance, FormRules, UploadFile, UploadInstance } from 'element-plus';
@@ -172,10 +172,12 @@ import Papa from 'papaparse';
 
 interface Props {
   mapCoordinates?: Coordinate[];
+  selectedCoordinate?: Coordinate | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  mapCoordinates: () => []
+  mapCoordinates: () => [],
+  selectedCoordinate: null
 });
 
 const elevationStore = useElevationStore();
@@ -210,6 +212,20 @@ const loading = computed(() => elevationStore.loading);
 const hasResults = computed(() => elevationStore.hasResults);
 const processingStats = computed(() => elevationStore.processingStats);
 const successRate = computed(() => elevationStore.successRate);
+
+watch(() => props.selectedCoordinate, async (newCoordinate) => {
+  if (!newCoordinate || !isValidCoordinate(newCoordinate)) {
+    return;
+  }
+
+  queryMode.value = 'single';
+  singleForm.value.longitude = newCoordinate.longitude;
+  singleForm.value.latitude = newCoordinate.latitude;
+
+  // 延迟到 DOM 更新后执行查询
+  await nextTick();
+  await handleSingleQuery();
+});
 
 const parsedCoordinates = computed(() => {
   if (!batchText.value.trim()) return [];
