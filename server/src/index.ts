@@ -7,6 +7,7 @@ import compression from 'compression';
 import path from 'path';
 import config from './config/env';
 import elevationRoutes from './routes/elevation.routes';
+import { elevationService } from './controllers/elevation.controller';
 
 export const createApp = (): express.Express => {
   const app = express();
@@ -62,12 +63,17 @@ export const createApp = (): express.Express => {
   app.use(express.static(clientDistPath));
 
   // 健康检查
-  app.get('/health', (_req, res) => {
-    res.json({ 
-      status: 'ok', 
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    });
+  app.get('/health', async (_req, res, next) => {
+    try {
+      const health = await elevationService.getHealthStatus();
+      res.status(health.status === 'ok' ? 200 : 503).json({
+        ...health,
+        timestamp: new Date().toISOString(),
+        version: '1.0.0'
+      });
+    } catch (error) {
+      next(error);
+    }
   });
 
   // API 路由

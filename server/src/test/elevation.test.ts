@@ -136,6 +136,9 @@ describe('Elevation API', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.status).toBe('ok');
+      expect(response.body.loadedTiles).toBe(1);
+      expect(response.body.failedTiles).toBe(0);
+      expect(response.body.issues).toEqual([]);
       expect(response.body).toHaveProperty('timestamp');
     });
   });

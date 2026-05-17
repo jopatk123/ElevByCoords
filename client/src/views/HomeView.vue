@@ -88,14 +88,14 @@ import QueryPanel from '@/components/QueryPanel.vue';
 import ResultsPanel from '@/components/ResultsPanel.vue';
 import apiService from '@/services/api.service';
 import config from '@/constants/env';
-import type { Coordinate, ElevationPoint } from '@/types/shared';
+import type { Coordinate, ElevationPoint, SRTMTileInfo } from '@/types/shared';
 
 // 响应式数据
 const mapViewRef = ref<InstanceType<typeof MapView>>();
 const mapCoordinates = ref<Coordinate[]>([]);
 const selectedCoordinate = ref<Coordinate | null>(null);
 const infoDialogVisible = ref(false);
-const tileInfo = ref<any[]>([]);
+const tileInfo = ref<SRTMTileInfo[]>([]);
 const maxBatchSize = config.maxBatchSize;
 
 // 生命周期

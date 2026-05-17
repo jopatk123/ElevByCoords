@@ -10,7 +10,8 @@ import type {
   ElevationStreamChunk,
   ElevationStreamComplete,
   ElevationStreamError,
-  ElevationStreamEvent
+  ElevationStreamEvent,
+  SRTMTileInfo
 } from '@/types/shared';
 
 interface StreamHandlers {
@@ -182,7 +183,7 @@ class ApiService {
     return response.data;
   }
 
-  async getTileInfo(): Promise<any> {
+  async getTileInfo(): Promise<{ success: boolean; data: SRTMTileInfo[] }> {
     const response = await this.api.get('/elevation/tiles');
     return response.data;
   }

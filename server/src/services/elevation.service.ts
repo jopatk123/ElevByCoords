@@ -18,9 +18,20 @@ interface TileDescriptor extends SRTMTileInfo {
   noDataValue: number | null;
 }
 
+interface ElevationHealthStatus {
+  status: 'ok' | 'degraded';
+  totalTiles: number;
+  loadedTiles: number;
+  failedTiles: number;
+  issues: string[];
+}
+
 export class ElevationService {
   private tiles: TileDescriptor[] = [];
   private ready: Promise<void>;
+  private discoveredTileCount = 0;
+  private failedTileCount = 0;
+  private initializationError: string | null = null;
 
   constructor() {
     this.ready = this.initializeTiles();
@@ -28,8 +39,13 @@ export class ElevationService {
 
   private async initializeTiles(): Promise<void> {
     try {
+      this.discoveredTileCount = 0;
+      this.failedTileCount = 0;
+      this.initializationError = null;
+
       const files = await fs.readdir(config.dataPath);
       const tifFiles = files.filter(file => file.toLowerCase().endsWith('.tif'));
+      this.discoveredTileCount = tifFiles.length;
 
       const loadedTiles: TileDescriptor[] = [];
 
@@ -69,12 +85,14 @@ export class ElevationService {
             noDataValue
           });
         } catch (tileError) {
+          this.failedTileCount += 1;
           console.error(`Failed to load GeoTIFF tile ${filename}:`, tileError);
         }
       }
 
       this.tiles = loadedTiles.sort((a, b) => a.filename.localeCompare(b.filename));
     } catch (error) {
+      this.initializationError = error instanceof Error ? error.message : String(error);
       console.error('Failed to initialize tile info:', error);
       this.tiles = [];
     }
@@ -320,7 +338,38 @@ export class ElevationService {
 
   clearCache(): void {
     this.tiles = [];
+    this.discoveredTileCount = 0;
+    this.failedTileCount = 0;
+    this.initializationError = null;
     this.ready = this.initializeTiles();
+  }
+
+  async getHealthStatus(): Promise<ElevationHealthStatus> {
+    await this.ensureInitialized();
+
+    const issues: string[] = [];
+
+    if (this.initializationError) {
+      issues.push(this.initializationError);
+    }
+
+    if (this.discoveredTileCount === 0) {
+      issues.push('No GeoTIFF tiles were found in the data directory');
+    }
+
+    if (this.failedTileCount > 0) {
+      issues.push(`${this.failedTileCount} GeoTIFF tile(s) failed to load`);
+    }
+
+    const status: ElevationHealthStatus['status'] = issues.length === 0 ? 'ok' : 'degraded';
+
+    return {
+      status,
+      totalTiles: this.discoveredTileCount,
+      loadedTiles: this.tiles.length,
+      failedTiles: this.failedTileCount,
+      issues
+    };
   }
 
 }

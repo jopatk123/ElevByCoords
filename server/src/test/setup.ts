@@ -7,6 +7,16 @@ process.env.ENABLE_REQUEST_LOGGING = 'false';
 
 vi.mock('../services/elevation.service', () => {
   class ElevationService {
+    async getHealthStatus() {
+      return {
+        status: 'ok' as const,
+        totalTiles: 1,
+        loadedTiles: 1,
+        failedTiles: 0,
+        issues: []
+      };
+    }
+
     async getElevation(coord: { longitude: number; latitude: number }) {
       return {
         ...coord,

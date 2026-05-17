@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Joi from 'joi';
 import { ElevationService } from '../services/elevation.service';
 import config from '../config/env';
+import { formatCoordinateTemplateAsCsv, formatElevationResultsAsCsv } from '../utils/csv';
 import type {
   Coordinate,
   ElevationPoint,
@@ -10,7 +11,7 @@ import type {
   ElevationStreamEvent
 } from '../types/shared';
 
-const elevationService = new ElevationService();
+export const elevationService = new ElevationService();
 
 // 验证模式
 const coordinateSchema = Joi.object({
@@ -116,7 +117,7 @@ export class ElevationController {
 
       // 根据格式返回不同的响应
       if (query.format === 'csv') {
-        const csv = this.formatAsCSV(results);
+        const csv = formatElevationResultsAsCsv(results);
         res.setHeader('Content-Type', 'text/csv');
         res.setHeader('Content-Disposition', 'attachment; filename="elevations.csv"');
         res.send(csv);
@@ -217,7 +218,7 @@ export class ElevationController {
 
   async getTileInfo(_req: Request, res: Response): Promise<void> {
     try {
-  const tileInfo = await elevationService.getTileInfo();
+      const tileInfo = await elevationService.getTileInfo();
       res.json({
         success: true,
         data: tileInfo
@@ -241,8 +242,7 @@ export class ElevationController {
         res.setHeader('Content-Disposition', 'attachment; filename="elevation_template.json"');
         res.send(JSON.stringify(template, null, 2));
       } else {
-        // 默认返回 CSV 格式
-        const csv = this.generateCSVTemplate();
+        const csv = formatCoordinateTemplateAsCsv();
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Content-Disposition', 'attachment; filename="elevation_template.csv"');
         res.send('\uFEFF' + csv); // BOM for Excel UTF-8
@@ -256,30 +256,12 @@ export class ElevationController {
     }
   }
 
-  private generateCSVTemplate(): string {
-    const header = 'longitude,latitude\n';
-    const examples = [
-      '118.7969,32.0603',  // 南京
-      '121.4737,31.2304',  // 上海
-      '119.2965,26.0745'   // 福州
-    ].join('\n');
-    return header + examples;
-  }
-
   private generateJSONTemplate(): Coordinate[] {
     return [
       { longitude: 118.7969, latitude: 32.0603 },  // 南京
       { longitude: 121.4737, latitude: 31.2304 },  // 上海
       { longitude: 119.2965, latitude: 26.0745 }   // 福州
     ];
-  }
-
-  private formatAsCSV(results: ElevationPoint[]): string {
-    const header = 'longitude,latitude,elevation,error\n';
-    const rows = results.map(r => 
-      `${r.longitude},${r.latitude},${r.elevation ?? ''},${r.error || ''}`
-    ).join('\n');
-    return header + rows;
   }
 
   private formatAsGeoJSON(results: ElevationPoint[]): {
