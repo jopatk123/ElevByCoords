@@ -276,7 +276,7 @@ export class ElevationController {
   private formatAsCSV(results: any[]): string {
     const header = 'longitude,latitude,elevation,error\n';
     const rows = results.map(r => 
-      `${r.longitude},${r.latitude},${r.elevation || ''},${r.error || ''}`
+      `${r.longitude},${r.latitude},${r.elevation ?? ''},${r.error || ''}`
     ).join('\n');
     return header + rows;
   }

@@ -1,7 +1,24 @@
 import dotenv from 'dotenv';
+import { existsSync } from 'fs';
 import path from 'path';
 
-dotenv.config();
+const resolveEnvFilePaths = (): string[] => {
+  const candidates = [
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(__dirname, '../../.env'),
+    path.resolve(__dirname, '../../../.env')
+  ];
+
+  return Array.from(new Set(candidates));
+};
+
+const envFile = resolveEnvFilePaths().find(filePath => existsSync(filePath));
+
+if (envFile) {
+  dotenv.config({ path: envFile });
+} else {
+  dotenv.config();
+}
 
 interface Config {
   port: number;

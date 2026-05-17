@@ -365,6 +365,7 @@ describe('Elevation Store', () => {
       const originalCreateObjectURL = window.URL.createObjectURL;
       const originalRevokeObjectURL = window.URL.revokeObjectURL;
       const appendChildSpy = vi.spyOn(document.body, 'appendChild');
+      const anchorClickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
       
       window.URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
       window.URL.revokeObjectURL = vi.fn();
@@ -380,6 +381,7 @@ describe('Elevation Store', () => {
         window.URL.createObjectURL = originalCreateObjectURL;
         window.URL.revokeObjectURL = originalRevokeObjectURL;
         appendChildSpy.mockRestore();
+        anchorClickSpy.mockRestore();
       }
     });
 
@@ -397,6 +399,7 @@ describe('Elevation Store', () => {
       const originalCreateObjectURL = window.URL.createObjectURL;
       const originalRevokeObjectURL = window.URL.revokeObjectURL;
       const appendChildSpy = vi.spyOn(document.body, 'appendChild');
+      const anchorClickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
       
       window.URL.createObjectURL = vi.fn(() => 'blob:http://localhost/test');
       window.URL.revokeObjectURL = vi.fn();
@@ -412,6 +415,7 @@ describe('Elevation Store', () => {
         window.URL.createObjectURL = originalCreateObjectURL;
         window.URL.revokeObjectURL = originalRevokeObjectURL;
         appendChildSpy.mockRestore();
+        anchorClickSpy.mockRestore();
       }
     });
   });

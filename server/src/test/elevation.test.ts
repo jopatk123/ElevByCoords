@@ -1,13 +1,8 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import request from 'supertest';
 import app from '../index';
 
 describe('Elevation API', () => {
-  beforeAll(async () => {
-    // 等待应用启动
-    await new Promise(resolve => setTimeout(resolve, 1000));
-  });
-
   describe('GET /api/v1/elevation', () => {
     it('should return elevation for valid coordinates', async () => {
       const response = await request(app)

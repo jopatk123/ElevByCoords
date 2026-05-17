@@ -63,7 +63,7 @@ cd ../server && npm install
 
 ```bash
 cp .env.example .env
-# 根据需要修改配置
+# 根据需要修改配置；服务端会优先读取当前工作目录的 .env，若不存在则回退到仓库根目录 .env
 ```
 
 ### 开发模式
@@ -92,13 +92,13 @@ cd server && npm start
 ### 开发环境
 
 ```bash
-docker-compose --profile dev up
+docker-compose up --build
 ```
 
 ### 生产环境
 
 ```bash
-docker-compose --profile prod up -d
+docker-compose up -d --build
 ```
 
 ## API 文档

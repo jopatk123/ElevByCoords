@@ -55,7 +55,7 @@ vi.mock('@element-plus/icons-vue', () => ({
   Location: { name: 'LocationIcon' },
   Plus: { name: 'PlusIcon' },
   Delete: { name: 'DeleteIcon' },
-  Map: { name: 'MapIcon' },
+  MapLocation: { name: 'MapIcon' },
 }));
 
 describe('MapView.vue', () => {
@@ -228,6 +228,7 @@ describe('MapView.vue', () => {
 
     it('应该在切换失败时显示错误消息', async () => {
       const { ElMessage } = await import('element-plus');
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
       // Mock removeLayer to throw error
       mockMap.removeLayer.mockImplementationOnce(() => {
@@ -256,6 +257,8 @@ describe('MapView.vue', () => {
         // 验证错误消息
         expect(ElMessage.error).toHaveBeenCalledWith('图层切换失败');
       }
+
+      consoleErrorSpy.mockRestore();
     });
   });
 
