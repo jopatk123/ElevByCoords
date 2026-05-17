@@ -354,7 +354,7 @@ export class ElevationService {
     }
 
     if (this.discoveredTileCount === 0) {
-      issues.push('No GeoTIFF tiles were found in the data directory');
+      issues.push(`No GeoTIFF tiles were found in ${config.dataPath}; place .tif/.tiff files there before starting the server`);
     }
 
     if (this.failedTileCount > 0) {

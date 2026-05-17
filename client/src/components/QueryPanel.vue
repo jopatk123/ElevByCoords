@@ -243,12 +243,7 @@ const parsedCoordinates = computed(() => {
 
 // 统一的消息显示包装，避免 ElementPlus 的类型问题
 function showMessage(message: string, type: 'success' | 'warning' | 'info' | 'error' = 'info'): void {
-  try {
-    (ElMessage as any)({ message, type });
-  } catch (e) {
-    // 回退到直接调用以防意外
-    try { (ElMessage as any)[type](message); } catch { /* ignore */ }
-  }
+  ElMessage({ message, type });
 }
 
 // 方法

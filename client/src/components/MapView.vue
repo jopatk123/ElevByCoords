@@ -51,7 +51,10 @@ import type { Coordinate } from '@/types/shared';
 const protocol = typeof window !== 'undefined' ? window.location.protocol : 'https:';
 
 // 修复 Leaflet 默认图标问题
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+const defaultIconPrototype = L.Icon.Default.prototype as L.Icon.Default & {
+  _getIconUrl?: () => string | undefined;
+};
+delete defaultIconPrototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: `${protocol}//cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png`,
   iconUrl: `${protocol}//cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png`,

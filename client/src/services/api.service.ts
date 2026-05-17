@@ -56,7 +56,7 @@ class ApiService {
       },
       (error) => {
         const message = error.response?.data?.error || error.message || '请求失败';
-  (ElMessage as any).error(message);
+        ElMessage.error(message);
         console.error('Response error:', error);
         return Promise.reject(error);
       }
