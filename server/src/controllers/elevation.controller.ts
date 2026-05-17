@@ -4,6 +4,7 @@ import { ElevationService } from '../services/elevation.service';
 import config from '../config/env';
 import type {
   Coordinate,
+  ElevationPoint,
   ElevationQuery,
   ElevationResponse,
   ElevationStreamEvent
@@ -265,7 +266,7 @@ export class ElevationController {
     return header + examples;
   }
 
-  private generateJSONTemplate(): any[] {
+  private generateJSONTemplate(): Coordinate[] {
     return [
       { longitude: 118.7969, latitude: 32.0603 },  // 南京
       { longitude: 121.4737, latitude: 31.2304 },  // 上海
@@ -273,7 +274,7 @@ export class ElevationController {
     ];
   }
 
-  private formatAsCSV(results: any[]): string {
+  private formatAsCSV(results: ElevationPoint[]): string {
     const header = 'longitude,latitude,elevation,error\n';
     const rows = results.map(r => 
       `${r.longitude},${r.latitude},${r.elevation ?? ''},${r.error || ''}`
@@ -281,7 +282,20 @@ export class ElevationController {
     return header + rows;
   }
 
-  private formatAsGeoJSON(results: any[]): any {
+  private formatAsGeoJSON(results: ElevationPoint[]): {
+    type: 'FeatureCollection';
+    features: Array<{
+      type: 'Feature';
+      geometry: {
+        type: 'Point';
+        coordinates: [number, number];
+      };
+      properties: {
+        elevation: number | null;
+        error?: string;
+      };
+    }>;
+  } {
     return {
       type: 'FeatureCollection',
       features: results.map(r => ({
@@ -292,7 +306,7 @@ export class ElevationController {
         },
         properties: {
           elevation: r.elevation,
-          error: r.error
+          ...(r.error ? { error: r.error } : {})
         }
       }))
     };

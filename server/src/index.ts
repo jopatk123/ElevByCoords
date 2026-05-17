@@ -1,5 +1,5 @@
 import type { Server } from 'http';
-import express from 'express';
+import express, { type ErrorRequestHandler } from 'express';
 import cors from 'cors';
 import helmet, { type HelmetOptions } from 'helmet';
 import morgan from 'morgan';
@@ -87,7 +87,8 @@ export const createApp = (): express.Express => {
   });
 
   // 错误处理中间件
-  app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+    void _next;
     console.error('Unhandled error:', err);
     
     if (err.code === 'LIMIT_FILE_SIZE') {
@@ -101,7 +102,8 @@ export const createApp = (): express.Express => {
       success: false,
       error: config.nodeEnv === 'development' ? err.message : 'Internal server error'
     });
-  });
+  };
+  app.use(errorHandler);
 
   return app;
 };

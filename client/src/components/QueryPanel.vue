@@ -108,16 +108,16 @@
           :auto-upload="false"
           :on-change="handleFileChange"
           :before-upload="beforeUpload"
-          accept=".csv,.json,.txt,.xlsx"
-          :limit="1"
-        >
+            :accept="uploadAccept"
+            :limit="1"
+          >
           <el-icon class="el-icon--upload"><UploadFilled /></el-icon>
           <div class="el-upload__text">
             将文件拖到此处，或<em>点击上传</em>
           </div>
           <template #tip>
             <div class="el-upload__tip">
-              支持 CSV、JSON、TXT、Excel 格式，文件大小不超过 10MB
+              支持 CSV、JSON、TXT、Excel 格式；文件在浏览器本地解析后提交查询，大小不超过 {{ maxFileSizeLabel }}
             </div>
           </template>
         </el-upload>
@@ -160,7 +160,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, defineEmits } from 'vue';
-import { ElMessage, ElMessageBox } from 'element-plus';
+import { ElMessage } from 'element-plus';
 import { Search as SearchIcon, Location as LocationIcon, Upload as UploadIcon, Download as DownloadIcon, ArrowDown, UploadFilled } from '@element-plus/icons-vue';
 import type { FormInstance, FormRules, UploadFile, UploadInstance } from 'element-plus';
 import { useElevationStore } from '@/stores/elevation.store';
@@ -169,6 +169,14 @@ import type { Coordinate } from '@/types/shared';
 import apiService from '@/services/api.service';
 import config from '@/constants/env';
 import Papa from 'papaparse';
+import {
+  getFileExtension,
+  isSpreadsheetFileName,
+  isSupportedUploadFileType,
+  parseDelimitedCoordinateText,
+  parseJsonCoordinates,
+  parseSpreadsheetCoordinates
+} from '@/utils/file-parsers';
 
 interface Props {
   mapCoordinates?: Coordinate[];
@@ -182,6 +190,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const elevationStore = useElevationStore();
 const maxBatchSize = config.maxBatchSize;
+const uploadAccept = config.supportedFormats.map(format => `.${format}`).join(',');
+const maxFileSizeLabel = `${Math.round(config.maxFileSize / 1024 / 1024)}MB`;
 
 // 响应式数据
 const queryMode = ref<'single' | 'batch' | 'upload'>('single');
@@ -228,24 +238,7 @@ watch(() => props.selectedCoordinate, async (newCoordinate) => {
 });
 
 const parsedCoordinates = computed(() => {
-  if (!batchText.value.trim()) return [];
-  
-  const lines = batchText.value.trim().split('\n');
-  const coordinates: Coordinate[] = [];
-  
-  for (const line of lines) {
-    const parts = line.trim().split(',');
-    if (parts.length >= 2) {
-      const longitude = parseFloat(parts[0]);
-      const latitude = parseFloat(parts[1]);
-      
-      if (!isNaN(longitude) && !isNaN(latitude)) {
-        coordinates.push({ longitude, latitude });
-      }
-    }
-  }
-  
-  return coordinates;
+  return parseDelimitedCoordinateText(batchText.value);
 });
 
 // 统一的消息显示包装，避免 ElementPlus 的类型问题
@@ -344,19 +337,19 @@ function handleFileChange(file: UploadFile): void {
 }
 
 function beforeUpload(file: File): boolean {
-  const isValidType = ['text/csv', 'application/json', 'text/plain', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(file.type);
-  const isValidSize = file.size / 1024 / 1024 < 10;
-  
+  const isValidType = isSupportedUploadFileType(file);
+  const isValidSize = file.size <= config.maxFileSize;
+
   if (!isValidType) {
-  showMessage('文件格式不支持', 'error');
+    showMessage('文件格式不支持', 'error');
     return false;
   }
-  
+
   if (!isValidSize) {
-  showMessage('文件大小不能超过 10MB', 'error');
+    showMessage(`文件大小不能超过 ${maxFileSizeLabel}`, 'error');
     return false;
   }
-  
+
   return false; // 阻止自动上传
 }
 
@@ -375,26 +368,16 @@ async function handleFileUpload(): Promise<void> {
     }
     
     if (coordinates.length > maxBatchSize) {
-      const result = await ElMessageBox.confirm(
-        `文件包含 ${coordinates.length} 个坐标点，超过建议的${maxBatchSize}个点位限制。是否继续？`,
-        '确认查询',
-        {
-          confirmButtonText: '继续查询',
-          cancelButtonText: '取消',
-          type: 'warning'
-        }
-      );
-      
-      if (result !== 'confirm') {
-        return;
-      }
+      showMessage(`文件包含 ${coordinates.length} 个有效坐标点，超过系统限制 ${maxBatchSize} 个`, 'warning');
+      return;
     }
-    
+
     await elevationStore.queryBatchPoints(coordinates);
-  showMessage(`文件解析完成，共处理 ${coordinates.length} 个点位`, 'success');
+    showMessage(`文件解析完成，共处理 ${coordinates.length} 个点位`, 'success');
   } catch (error) {
     console.error('File upload failed:', error);
-  showMessage('文件解析失败', 'error');
+    const message = error instanceof Error ? error.message : '文件解析失败';
+    showMessage(message, 'error');
   }
 }
 
@@ -425,28 +408,42 @@ async function handleDownloadTemplate(format: 'csv' | 'json'): Promise<void> {
 async function parseFile(file: File): Promise<Coordinate[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    
+    const extension = getFileExtension(file.name);
+
     reader.onload = (e) => {
       try {
-        const content = e.target?.result as string;
-        let coordinates: Coordinate[] = [];
-        
-        if (file.name.endsWith('.csv') || file.name.endsWith('.txt')) {
-          // 解析 CSV
+        const content = e.target?.result;
+
+        if (isSpreadsheetFileName(file.name)) {
+          if (!(content instanceof ArrayBuffer)) {
+            reject(new Error('Excel 文件读取失败'));
+            return;
+          }
+
+          resolve(parseSpreadsheetCoordinates(content));
+          return;
+        }
+
+        if (typeof content !== 'string') {
+          reject(new Error('文件读取失败'));
+          return;
+        }
+
+        if (extension === 'csv' || extension === 'txt') {
           Papa.parse(content, {
             complete: (results) => {
-              coordinates = parseCSVData(results.data as string[][]);
-              resolve(coordinates);
+              resolve(parseDelimitedCoordinateText(
+                (results.data as Array<Array<unknown>>)
+                  .map(row => row.join(','))
+                  .join('\n')
+              ));
             },
             error: (err: unknown) => {
               reject(err);
             }
           });
-        } else if (file.name.endsWith('.json')) {
-          // 解析 JSON
-          const data = JSON.parse(content);
-          coordinates = parseJSONData(data);
-          resolve(coordinates);
+        } else if (extension === 'json') {
+          resolve(parseJsonCoordinates(JSON.parse(content)));
         } else {
           reject(new Error('不支持的文件格式'));
         }
@@ -458,52 +455,15 @@ async function parseFile(file: File): Promise<Coordinate[]> {
     reader.onerror = () => {
       reject(new Error('文件读取失败'));
     };
-    
+
+    if (isSpreadsheetFileName(file.name)) {
+      reader.readAsArrayBuffer(file);
+      return;
+    }
+
     reader.readAsText(file);
   });
 }
-
-function parseCSVData(data: string[][]): Coordinate[] {
-  const coordinates: Coordinate[] = [];
-  
-  for (let i = 0; i < data.length; i++) {
-    const row = data[i];
-    if (row.length >= 2) {
-      const longitude = parseFloat(row[0]);
-      const latitude = parseFloat(row[1]);
-      
-      if (!isNaN(longitude) && !isNaN(latitude)) {
-        coordinates.push({ longitude, latitude });
-      }
-    }
-  }
-  
-  return coordinates;
-}
-
-function parseJSONData(data: any): Coordinate[] {
-  const coordinates: Coordinate[] = [];
-  
-  if (Array.isArray(data)) {
-    for (const item of data) {
-      if (typeof item === 'object' && item.longitude !== undefined && item.latitude !== undefined) {
-        const longitude = parseFloat(item.longitude);
-        const latitude = parseFloat(item.latitude);
-        
-        if (!isNaN(longitude) && !isNaN(latitude)) {
-          coordinates.push({ longitude, latitude });
-        }
-      }
-    }
-  }
-  
-  return coordinates;
-}
-
-// 监听地图坐标变化
-watch(() => props.mapCoordinates, () => {
-  // 可以在这里添加自动同步逻辑
-}, { deep: true });
 </script>
 
 <style scoped lang="scss">

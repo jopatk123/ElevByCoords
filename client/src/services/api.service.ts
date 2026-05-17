@@ -134,13 +134,15 @@ class ApiService {
       }
     };
 
-    while (true) {
-      const { value, done } = await reader.read();
+    let done = false;
+    while (!done) {
+      const readResult = await reader.read();
+      done = readResult.done;
       if (done) {
         break;
       }
 
-      buffer += decoder.decode(value, { stream: true });
+      buffer += decoder.decode(readResult.value, { stream: true });
       let newlineIndex = buffer.indexOf('\n');
       while (newlineIndex !== -1) {
         const line = buffer.slice(0, newlineIndex);
@@ -195,18 +197,6 @@ class ApiService {
         }
       }
     );
-    return response.data;
-  }
-
-  async uploadFile(file: File): Promise<any> {
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await this.api.post('/elevation/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
     return response.data;
   }
 }

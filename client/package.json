@@ -12,22 +12,24 @@
     "type-check": "vue-tsc --noEmit --skipLibCheck"
   },
   "dependencies": {
-    "vue": "^3.3.8",
-    "vue-router": "^4.2.5",
-    "pinia": "^2.1.7",
+    "@element-plus/icons-vue": "^2.1.0",
     "axios": "^1.6.0",
     "element-plus": "^2.4.2",
-    "@element-plus/icons-vue": "^2.1.0",
+    "file-saver": "^2.0.5",
     "leaflet": "^1.9.4",
-    "vue-leaflet": "^0.1.0",
     "papaparse": "^5.4.1",
-    "file-saver": "^2.0.5"
+    "pinia": "^2.1.7",
+    "vue": "^3.3.8",
+    "vue-leaflet": "^0.1.0",
+    "vue-router": "^4.2.5",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/leaflet": "^1.9.8",
-    "@types/papaparse": "^5.3.14",
+    "@rushstack/eslint-patch": "^1.16.1",
     "@types/file-saver": "^2.0.7",
+    "@types/leaflet": "^1.9.8",
     "@types/node": "^20.8.0",
+    "@types/papaparse": "^5.3.14",
     "@vitejs/plugin-vue": "^4.4.1",
     "@vue/eslint-config-prettier": "^8.0.0",
     "@vue/eslint-config-typescript": "^12.0.0",

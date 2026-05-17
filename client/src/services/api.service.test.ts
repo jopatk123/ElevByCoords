@@ -116,6 +116,13 @@ describe('API Service Utils', () => {
       expect(file.name.endsWith('.json')).toBe(true);
     });
 
+    it('should validate Excel file type', () => {
+      const file = new File(['data'], 'test.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+      expect(file.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      expect(file.name.endsWith('.xlsx')).toBe(true);
+    });
+
     it('should validate file size', () => {
       const smallFile = new File(['small'], 'small.csv', { type: 'text/csv' });
       const fileSize = smallFile.size / 1024 / 1024; // Convert to MB

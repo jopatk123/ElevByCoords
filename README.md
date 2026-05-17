@@ -8,7 +8,7 @@
 - 📊 **丰富的数据格式**：支持 CSV、JSON、GeoJSON 导出
 - 🎯 **交互式地图**：可视化查询点位，支持点击添加
 - 🛰️ **地图图层切换**：支持街道地图和卫星图像切换（使用Esri World Imagery）
-- 📁 **文件上传**：支持 CSV、JSON、TXT、Excel 格式
+- 📁 **文件上传**：支持 CSV、JSON、TXT、Excel 格式，本地解析后提交查询
 - 📈 **查询统计**：实时显示查询成功率和处理时间
 - 🔍 **结果筛选**：支持按状态筛选和关键词搜索
 - 📱 **响应式设计**：适配桌面和移动设备
@@ -30,7 +30,7 @@
 - **状态管理**: Pinia
 - **地图**: Leaflet (OpenStreetMap + Esri World Imagery)
 - **HTTP**: Axios
-- **文件处理**: PapaParse
+- **文件处理**: PapaParse + SheetJS (xlsx)
 
 ## 数据说明
 
@@ -148,6 +148,13 @@ longitude,latitude
   {"longitude": 121.4737, "latitude": 31.2304}
 ]
 ```
+
+### Excel 格式
+
+- 支持 `.xls` / `.xlsx`
+- 默认读取首个工作表
+- 按前两列解析为 `longitude`、`latitude`
+- 文件会在浏览器本地解析后再调用批量查询接口
 
 ## 测试
 

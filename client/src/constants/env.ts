@@ -15,7 +15,7 @@ const config: AppConfig = {
   maxBatchSize: parseInt(import.meta.env.VITE_MAX_BATCH_SIZE || '20000', 10),
   batchChunkSize: Math.max(1, parseInt(import.meta.env.VITE_BATCH_CHUNK_SIZE || '500', 10)),
   maxFileSize: parseInt(import.meta.env.VITE_MAX_FILE_SIZE || '10485760', 10), // 10MB
-  supportedFormats: ['csv', 'json', 'txt', 'xlsx']
+  supportedFormats: ['csv', 'json', 'txt', 'xls', 'xlsx']
 };
 
 export default config;

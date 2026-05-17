@@ -215,7 +215,7 @@ describe('QueryPanel Utils', () => {
 
     it('should validate file type', () => {
       const csvFile = new File(['data'], 'test.csv', { type: 'text/csv' });
-      const validTypes = ['text/csv', 'application/json', 'text/plain'];
+      const validTypes = ['text/csv', 'application/json', 'text/plain', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
       const isValidType = validTypes.includes(csvFile.type);
       expect(isValidType).toBe(true);
     });
